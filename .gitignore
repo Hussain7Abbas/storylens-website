@@ -8,3 +8,7 @@ playwright-report/
 test-results/
 .lighthouseci/
 .DS_Store
+
+.runtime/
+core
+core.*

@@ -1,6 +1,6 @@
 "use client";
 import { Check, Highlighter, MessageSquare, Replace } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getMessages } from "@/i18n/messages";
 import type { Locale } from "@/lib/site-config";
 export function Demo({ locale }: { locale: Locale }) {
@@ -9,7 +9,27 @@ export function Demo({ locale }: { locale: Locale }) {
 	const [replace, setReplace] = useState(false);
 	const [tooltip, setTooltip] = useState(false);
 	const [status, setStatus] = useState("");
+	const manual = useRef(false);
+	useEffect(() => {
+		const updateStage = (event: Event) => {
+			if (
+				manual.current ||
+				!(event instanceof CustomEvent) ||
+				typeof event.detail !== "number"
+			)
+				return;
+			const stage = event.detail;
+			setHighlight(stage >= 1);
+			setReplace(stage >= 2);
+			setTooltip(stage >= 3);
+			if (stage === 4) setStatus(m.demoStatus);
+		};
+		window.addEventListener("storylens-demo-stage", updateStage);
+		return () =>
+			window.removeEventListener("storylens-demo-stage", updateStage);
+	}, [m.demoStatus]);
 	function update(action: () => void) {
+		manual.current = true;
 		action();
 		setStatus(`${m.demoStatus} ${Date.now() % 2 ? "" : " "}`);
 	}
@@ -60,6 +80,7 @@ export function Demo({ locale }: { locale: Locale }) {
 				</p>
 			</div>
 			<div className="reading-card demo-passage">
+				<span className="demo-lens" aria-hidden="true" />
 				<div className="chapter-label">{m.chapter}</div>
 				<h3>{m.chapterTitle}</h3>
 				<p className="story-text">

@@ -1,0 +1,23 @@
+{
+  "route": "/en/privacy/",
+  "profile": {
+    "rttMs": 80,
+    "throughputKbps": 4096,
+    "requestLatencyMs": 80,
+    "downloadThroughputKbps": 4096,
+    "uploadThroughputKbps": 1024,
+    "cpuSlowdownMultiplier": 4
+  },
+  "scores": {
+    "performance": 100,
+    "accessibility": 100,
+    "best-practices": 100,
+    "seo": 100
+  },
+  "metrics": {
+    "first-contentful-paint": 453.19475,
+    "largest-contentful-paint": 1062.3895,
+    "cumulative-layout-shift": 0,
+    "total-blocking-time": 3
+  }
+}

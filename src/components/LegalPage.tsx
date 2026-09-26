@@ -37,7 +37,18 @@ export async function LegalPage({
 				<a href={`#${slug(String(children))}`}>{children}</a>
 			</h2>
 		),
-		ContactLink: () => <a href={siteConfig.contact}>{m.contact}</a>,
+		OperatorName: () => <>{siteConfig.operator[locale]}</>,
+		ContactLink: () => (
+			<a
+				href={
+					siteConfig.privacyEmail
+						? `mailto:${siteConfig.privacyEmail}`
+						: siteConfig.contact
+				}
+			>
+				{siteConfig.privacyEmail || m.contact}
+			</a>
+		),
 		LicenseLink: () => (
 			<a href={`${siteConfig.website}/blob/main/LICENSE.md`}>
 				{locale === "ar" ? "الترخيص" : "license"}

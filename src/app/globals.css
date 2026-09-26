@@ -1139,3 +1139,34 @@ details p {
 		padding-top: 0;
 	}
 }
+
+/* Native mobile fonts avoid loading display fonts on constrained connections. */
+@media (max-width: 767px) {
+	html[lang] {
+		--font-body: system-ui;
+		--font-display: Georgia;
+		--font-arabic: Tahoma;
+	}
+}
+
+.header.scrolled {
+	box-shadow: 0 2px 16px rgb(0 0 0 / 0.06);
+}
+.demo-lens {
+	display: none;
+	position: absolute;
+	inset-inline-start: 35%;
+	top: 40%;
+	width: 6rem;
+	height: 6rem;
+	border: 3px solid var(--accent);
+	border-radius: 50%;
+	opacity: 0;
+	pointer-events: none;
+	box-shadow: var(--shadow);
+}
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+	.demo-lens {
+		display: block;
+	}
+}

@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Inter, Noto_Sans_Arabic } from "next/font/google";
+import {
+	Cormorant_Garamond,
+	IBM_Plex_Sans_Arabic,
+	Inter,
+} from "next/font/google";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import type { ReactNode } from "react";
@@ -20,7 +24,8 @@ const body = Inter({
 	display: "optional",
 	preload: false,
 });
-const arabic = Noto_Sans_Arabic({
+const arabic = IBM_Plex_Sans_Arabic({
+	weight: ["400", "600"],
 	subsets: ["arabic"],
 	variable: "--font-arabic",
 	display: "optional",

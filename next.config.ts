@@ -7,5 +7,6 @@ const config: NextConfig = {
 	trailingSlash: true,
 	images: { unoptimized: true },
 	poweredByHeader: false,
+	experimental: { inlineCss: true },
 };
 export default createNextIntlPlugin("./src/i18n/request.ts")(config);

@@ -1,7 +1,9 @@
 name: Deploy production
 on:
   workflow_dispatch:
-  push:
+  workflow_run:
+    workflows: [Website quality]
+    types: [completed]
     branches: [main]
 permissions:
   contents: read
@@ -10,7 +12,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   deploy:
-    if: vars.DEPLOY_ENABLED == 'true'
+    if: vars.DEPLOY_ENABLED == 'true' && (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -27,4 +29,5 @@ jobs:
       - name: Deploy standalone checkout
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-        run: ssh -o BatchMode=yes "$DEPLOY_HOST" 'cd /srv/storylens-website && make sync'
+          DEPLOY_COMMIT: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: ssh -o BatchMode=yes "$DEPLOY_HOST" "deploy $DEPLOY_COMMIT"

@@ -2,6 +2,12 @@
 set -euo pipefail
 # Run inside the standalone server checkout after cloning this repository.
 cd "$(dirname "$0")/.."
+export PATH="/opt/storylens-node/bin:$PATH"
+command -v node >/dev/null || { echo "Install a supported Node LTS runtime for Next.js; Bun still manages dependencies and scripts."; exit 1; }
+set -a
+if [ -f .env ]; then source .env; fi
+set +a
+[ -n "${NEXT_PUBLIC_PRIVACY_EMAIL:-}" ] || { echo "Set the approved private contact address in .env before publication."; exit 1; }
 [ "$(id -u)" -eq 0 ] || { echo "Deploy as root to manage nginx and releases."; exit 1; }
 exec 9>/var/lock/storylens-website-deploy.lock
 flock -n 9 || { echo "Another website deploy is running."; exit 1; }
