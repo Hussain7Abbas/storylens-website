@@ -39,5 +39,5 @@ cp deploy/nginx/storylens.iscoded.com.conf "$config"
 ln -sfn "$config" /etc/nginx/sites-enabled/storylens.iscoded.com.conf
 nginx -t || { rollback; exit 1; }
 systemctl reload nginx
-curl --fail --silent --show-error --retry 5 --retry-delay 1 --retry-all-errors --resolve storylens.iscoded.com:443:127.0.0.1 https://storylens.iscoded.com/en/ >/dev/null || { rollback; nginx -t && systemctl reload nginx; exit 1; }
+curl --noproxy "*" --connect-timeout 5 --max-time 15 --fail --silent --show-error --retry 5 --retry-delay 1 --retry-all-errors --resolve storylens.iscoded.com:443:127.0.0.1 https://storylens.iscoded.com/en/ >/dev/null || { rollback; nginx -t && systemctl reload nginx; exit 1; }
 echo "Deployed $release"
