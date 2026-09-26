@@ -1,0 +1,10 @@
+.next/
+node_modules/
+out/
+.env*
+!.env.example
+*.tsbuildinfo
+playwright-report/
+test-results/
+.lighthouseci/
+.DS_Store

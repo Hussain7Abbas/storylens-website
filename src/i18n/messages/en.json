@@ -1,0 +1,153 @@
+{
+	"skip": "Skip to content",
+	"features": "Features",
+	"how": "How it works",
+	"companion": "Desktop companion",
+	"faq": "Questions",
+	"install": "Add to Chrome",
+	"theme": "Color theme",
+	"menu": "Menu",
+	"eyebrow": "A little clarity. A better chapter.",
+	"headline": "Stay inside the story.",
+	"intro": "Characters you remember. Names that stay consistent. Story Lens brings a little order to the worlds you love reading.",
+	"action": "See it in action",
+	"chips": [
+		"Made for web novels",
+		"English & العربية",
+		"Your browser, your reading"
+	],
+	"chapter": "CHAPTER 07 · THE GLASS ARCHIVE",
+	"chapterTitle": "A name worth remembering",
+	"passageBefore": "Mira reached the archive before dawn. Across the bridge, ",
+	"passageName": "Captain Vale",
+	"passageAfter": " held the last lantern. “The city remembers every name,” he said. Behind them, Orin opened the silver gate — and the story began again.",
+	"mira": "Mira",
+	"vale": "Vale",
+	"orin": "Orin",
+	"caption": "Your chapter, with a little more context.",
+	"note": "Mira · Cartographer",
+	"noteBody": "Keeper of the map. An ally from the northern coast.",
+	"whyTitle": "More story. Less “who was that?”",
+	"whyIntro": "A hundred names. A new translation. A week between chapters. A good story deserves your attention, without the extra detective work.",
+	"pains": [
+		"Keep characters in focus",
+		"Make names consistent",
+		"Find your place again"
+	],
+	"featureTitle": "Small tools for sprawling worlds.",
+	"featureIntro": "Keep your place in the cast, smooth out a translation, and read the way that works for you.",
+	"featureCards": [
+		[
+			"Character coloring",
+			"Give names a color, connect aliases, and keep notes and versions close with tooltips."
+		],
+		[
+			"Text replacements",
+			"Turn inconsistent translated names into the ones you recognize."
+		],
+		[
+			"Chapter detection",
+			"Recognize supported novel pages with per-site selectors and optional AI-assisted detection."
+		],
+		[
+			"A lens on the page",
+			"Open the popup in your reading tab, move the launcher, and pick text directly from the page."
+		],
+		[
+			"Offline reading tools",
+			"Download novel reference data, queue supported edits, and sync when you reconnect."
+		],
+		[
+			"Optional AI summaries",
+			"Pair the desktop companion to summarize a page through your own Claude Code or Codex login."
+		]
+	],
+	"demoLabel": "TRY A CHAPTER",
+	"demoTitle": "See the names. Follow the thread.",
+	"demoIntro": "An original miniature story. Switch on the tools and watch the same passage become easier to follow.",
+	"highlight": "Highlight characters",
+	"replace": "Apply replacements",
+	"tooltip": "Show character note",
+	"demoStatus": "The sample passage has been updated.",
+	"demoNote": "Illustrative demo; no page content is sent anywhere.",
+	"howTitle": "From install to next chapter.",
+	"steps": [
+		["Add the extension", "Install Story Lens from the Chrome Web Store."],
+		[
+			"Open your story",
+			"On a supported novel site, the lens appears beside the page."
+		],
+		[
+			"Make it yours",
+			"Find or add character information, use available replacements, and keep reading."
+		]
+	],
+	"companionLabel": "OPTIONAL DESKTOP COMPANION",
+	"companionTitle": "A recap, through your own AI account.",
+	"companionBody": "The companion runs on your computer and calls your installed Claude Code or Codex CLI. The selected provider receives the page content you ask to summarize. Story Lens’s API is not part of this summary path.",
+	"setup": "Set up the companion",
+	"source": "View source",
+	"downloadNote": "macOS and Windows build instructions are available. Published installers are not available yet; local builds may be unsigned.",
+	"pairing": [
+		"Open the companion",
+		"Copy its pairing token",
+		"Connect in the extension’s AI tab",
+		"Choose a model and summarize"
+	],
+	"privacyLabel": "PRIVACY, IN PLAIN LANGUAGE",
+	"privacyTitle": "Know where your chapter goes.",
+	"privacyPoints": [
+		"Summaries start when you click; your chosen AI provider receives the page content.",
+		"AI-assisted chapter detection sends the page URL and HTML through the API to OpenRouter.",
+		"Downloaded reference data and extension preferences live on your device.",
+		"This website has no analytics or advertising scripts."
+	],
+	"privacy": "Privacy Policy",
+	"terms": "Terms of Use",
+	"readPolicy": "Read the full policy",
+	"faqTitle": "Before your next chapter.",
+	"questions": [
+		[
+			"Which sites work?",
+			"Sites with configured chapter selectors support automatic novel detection. The text picker and AI tab can also work on ordinary web pages; browser-internal pages are excluded."
+		],
+		[
+			"Do I need an account?",
+			"The API supports guest and registered accounts. Permission to edit shared data depends on your role."
+		],
+		[
+			"Does it work offline?",
+			"Downloaded novel reference data remains available offline. Supported local edits queue for synchronization; new server requests and AI features need a connection."
+		],
+		[
+			"Which AI does it use?",
+			"Chapter-selector detection uses OpenRouter through the backend. Page summaries use your own installed Claude Code or Codex CLI through the optional companion. Provider charges and limits depend on your account."
+		],
+		[
+			"Is Arabic supported?",
+			"Yes. The extension and this website support English and Arabic, including right-to-left layout."
+		],
+		[
+			"What about Firefox?",
+			"The source includes Firefox builds. A published Firefox listing has not been verified, so we currently link to Chrome and the source repository."
+		],
+		[
+			"Is it open source?",
+			"The source is available under PolyForm Noncommercial 1.0.0. Commercial use requires separate permission."
+		],
+		[
+			"Is it free to use?",
+			"You can install the extension from its store listing. AI provider charges and usage limits are separate. We do not promise permanent pricing or availability."
+		]
+	],
+	"finalTitle": "Let the story take it from here.",
+	"finalBody": "A familiar cast. A clearer chapter. A little lens for your next read.",
+	"footerTag": "Clarity for the worlds you read.",
+	"license": "Source available under PolyForm Noncommercial 1.0.0.",
+	"contact": "Contact / support",
+	"legalUpdated": "Last updated",
+	"contents": "On this page",
+	"home": "Back to Story Lens",
+	"notFound": "This chapter is missing.",
+	"notFoundBody": "The page you’re looking for could not be found."
+}

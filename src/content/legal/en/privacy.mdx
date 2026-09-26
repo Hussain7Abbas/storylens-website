@@ -1,0 +1,79 @@
+---
+title: "Privacy Policy"
+lastUpdated: "2026-09-27"
+version: "1.0.0"
+changelog: "Initial publication / النشر الأول"
+---
+
+## At a glance
+
+Story Lens adds character reference tools and text replacements to your browser. Accounts and shared reference data use the Story Lens API. Optional AI chapter detection sends page URL and HTML to OpenRouter and a model provider. Optional summaries send the selected page through the desktop companion to your own AI provider. This website has no analytics or advertising scripts. Hosting and security services still process network requests.
+
+## Operator and contact
+
+Story Lens is maintained by Hussain Abbas. For support, use <ContactLink />. For privacy requests, use the private contact channel listed there; do not post passwords, pairing tokens, page content, or personal account information in a public issue. This policy covers the extension, its API, the desktop companion, and this website.
+
+## Accounts and shared data
+
+A guest account is created with a username and generated credentials. Registration adds your email address, display name, and a password stored as a hash. The API stores account roles and verification state. Sessions contain a token and expiry; the session schema also supports IP address and user agent. Authentication and security infrastructure may process these network details.
+
+Novels, chapter metadata, keywords, descriptions, aliases, versions, categories, replacement rules, website selectors, and related contributions are stored in the backend database. The reference catalogue is shared with authenticated users; it is not a private notebook. Avoid putting personal or confidential information in these fields. Uploaded images go to ImgBB, and image URLs and metadata are stored by the API.
+
+## Two different AI paths
+
+**Chapter-selector detection:** when you choose AI-assisted detection in the selector form, the extension sends the current page URL and HTML to the Story Lens API, which calls OpenRouter and its upstream model provider. The configured default model is Google Gemini, but configuration or a request can select another model. The returned selectors populate a form; saving the form stores selector information separately. The detection route has no database write for raw HTML. Provider retention and training practices depend on the provider and routing settings; do not assume zero retention.
+
+**Page summaries:** when you click Summarize page, the extension removes scripts, forms, controls, hidden nodes, and prior summary UI from a clone of the page body. The remaining HTML goes to the authenticated desktop service on your own computer, then to the provider behind your installed Claude Code or Codex CLI. Visible personal information may remain. The Story Lens backend does not receive this summary request. The companion does not log prompts or output; provider processing follows your own provider account terms. Do not submit pages you are not allowed to share.
+
+## Local storage and permissions
+
+Extension-local storage and IndexedDB hold language, preferences, launcher position, pairing credentials, downloaded novel reference data, and queued edits. Queued supported edits are sent to the API when synchronized. The companion stores settings and a pairing token in a private file on your computer. Uninstalling the extension or clearing its data removes browser-local data; desktop application data may require separate manual removal.
+
+- **tabs:** find the active reading tab and send selected page actions to it.
+- **storage:** save preferences and connection settings.
+- **alarms:** schedule background synchronization.
+- **unlimitedStorage:** accommodate downloaded reference data.
+- **Content scripts on HTTP(S) pages:** detect supported pages, highlight names, apply replacements, and display reading tools.
+- **API host access:** fetch and synchronize reference data and account operations.
+- **127.0.0.1 access:** connect to your paired local companion.
+
+The website saves only your theme choice in localStorage. Locale is represented in the URL. We do not run analytics or ad scripts or collect a separate list of your browsing history. API operations may include novel slugs, chapter metadata, and the page URL for requested selector detection. Ordinary server access logs can contain requested URLs.
+
+## Hosting, logs, and third parties
+
+This site is served by Nginx on the operator’s server behind Cloudflare. Requests can reveal IP addresses, request time, paths, response status, browser information, and referrers to hosting and network services. Website Nginx access logs rotate daily with 14 rotations retained. Backend logs record method, status, path, and errors; error messages and stacks can contain diagnostic data. Backend application log retention has no verified fixed limit, so no automatic deletion deadline is promised.
+
+Processors and independent services include the infrastructure host, Cloudflare, ImgBB, OpenRouter, its model providers, and—in the summary path—your chosen Anthropic or OpenAI service. These services may process data internationally under their own policies. No single-country processing or specific transfer mechanism is promised here. We may disclose data when legally required or reasonably necessary to protect security and rights.
+
+See [Cloudflare’s privacy policy](https://www.cloudflare.com/policies/privacy/), [ImgBB’s privacy policy](https://imgbb.com/privacy), [OpenRouter’s privacy policy](https://openrouter.ai/privacy), [Anthropic’s privacy policy](https://www.anthropic.com/legal/privacy), and [OpenAI’s privacy policy](https://openai.com/policies/privacy-policy/). External pages have their own terms.
+
+## Purposes and legal bases
+
+We process account and reference data to provide the requested service, security and operational data to maintain and protect it, and optional AI content to fulfill the action you choose. Where GDPR or UK GDPR applies, the relevant bases may be performance of a contract, legitimate interests in operating a secure service, and consent where applicable to optional processing. You can avoid optional AI processing by not invoking it. We do not sell personal information or share it for targeted advertising. Story Lens does not use submitted page content to train its own models; upstream providers may have different practices.
+
+## Retention and deletion
+
+- **Accounts and shared contributions:** retained while needed to operate the service. There is no verified self-service account deletion endpoint. Request deletion through the private contact channel. Shared content may need separate handling, and data may be retained where required for legal or security reasons.
+- **Sessions:** have an expiry; expiry is not a guarantee that the database row is immediately removed.
+- **Images:** stored by ImgBB under its retention practices. Removing a reference in Story Lens does not guarantee removal of every third-party copy.
+- **AI page content:** processed for the request. The chapter-detection route does not persist raw HTML, and the companion does not log summaries. Upstream retention is governed by provider policies and account settings.
+- **Device data:** retained until cleared. Uninstalling does not delete server accounts or necessarily remove desktop settings files.
+- **Website access logs:** daily rotation with 14 retained rotations; exceptional legal or incident preservation may apply.
+
+Backups and security records may take longer to remove. We do not claim an unverified fixed database or backup deletion period.
+
+## Security and your choices
+
+Passwords are hashed. Public endpoints use HTTPS. The desktop service binds to loopback, requires a pairing token, validates origin and host, and limits request size and concurrency. These safeguards reduce risk but cannot guarantee perfect security.
+
+Subject to applicable law, you may request access, correction, export, deletion, restriction, objection, or withdrawal of consent, and complain to your competent data-protection authority. We may verify your identity and need to preserve lawful records. We aim to respond within 30 days, subject to lawful extensions. California residents may have applicable access and deletion rights; we do not sell or share personal data for cross-context behavioral advertising. You can edit available profile fields, stop using AI features, clear local data, or uninstall. Do not include sensitive information in a public support issue.
+
+## Children and store disclosures
+
+The service is intended for people aged 13 or older, and at least 16 where applicable law requires that age or valid parental authorization. Do not provide children’s information in shared reference fields. Contact us privately if you believe a child’s information has been submitted improperly.
+
+Extension data is used to provide and secure Story Lens’s reading tools, account features, synchronization, and requested AI functions. It is not sold, used for advertising, or used to determine creditworthiness or lending eligibility. The extension does not integrate Google user-data APIs; this policy does not make an inapplicable Google API Limited Use certification.
+
+## Changes and language
+
+We update this page when data handling changes. The date and version identify the current notice; material changes may also be announced through release notes. English controls if the Arabic translation differs, subject to mandatory local law. Version 1.0.0 is the initial policy.
