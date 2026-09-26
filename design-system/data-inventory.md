@@ -21,4 +21,4 @@ Source snapshots: backend `6a800550c57c3e022aebf40633adeb4337edc9da`, extension 
 
 No ad integration, sale, or Story Lens model-training path was found in the inspected implementation. This does not bind upstream AI providers. Provider privacy links are included rather than inventing retention periods.
 
-Owner approved Hussain Abbas, age 13/16, and mandatory applicable law without exclusive venue on 2026-09-27. A private contact address is still pending and must be configured before legal-page publication. Professional legal review is recommended before treating the documents as store-ready.
+Owner approved Hussain Abbas, age 13/16, and mandatory applicable law without exclusive venue on 2026-09-27. Owner approved hussain@iscoded.com for privacy and deletion requests. Professional legal review is recommended before treating the documents as store-ready.

@@ -1,6 +1,6 @@
 export const siteConfig = {
 	operator: { en: "Hussain Abbas", ar: "حسين عباس" },
-	privacyEmail: process.env.NEXT_PUBLIC_PRIVACY_EMAIL ?? "",
+	privacyEmail: process.env.NEXT_PUBLIC_PRIVACY_EMAIL ?? "hussain@iscoded.com",
 	url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://storylens.iscoded.com",
 	chrome:
 		"https://chromewebstore.google.com/detail/story-lens/caimeippciancnajhfokmhadjhmedmnf",
