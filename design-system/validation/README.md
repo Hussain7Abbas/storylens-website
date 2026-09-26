@@ -15,3 +15,5 @@ Legal defaults are owner-approved; private contact address pending. DNS created 
 GitHub Actions quality run 36273052600 passed dependency installation, typecheck, Biome, static export, browser tests and Lighthouse. Optional 3D enhancement now uses an original chapter texture behind the refracting lens, with demand rendering and damped pointer motion.
 
 Desktop WebGL smoke check mounted the optional canvas with zero page errors; chapter texture is clipped to the lens aperture. Captured en-desktop-lens.png for visual review. Browser test reports now include an HTML report for CI artifacts.
+
+Prelaunch HTTPS routing corrected: the HTTP-only bootstrap allowed TLS requests to reach the server default Raseen site. After certificate issuance, deploy/nginx/pending.conf reserves the Story Lens HTTPS host with a no-store, noindex 503 holding page until the legal contact address is supplied.
