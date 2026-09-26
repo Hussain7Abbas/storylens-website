@@ -1170,3 +1170,13 @@ details p {
 		display: block;
 	}
 }
+
+.hero-copy,
+.hero-art {
+	min-width: 0;
+}
+@media (max-width: 767px) {
+	.hero {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}

@@ -9,3 +9,5 @@ Lighthouse summary JSON files record actual 4G profile scores and timings. The e
 Server build initially exported successfully but Bun 1.3.14 crashed during Next worker shutdown. Dedicated Node 24.21.0 is installed at /opt/storylens-node and used only for the Next build runtime. Bun remains the dependency manager and package-script runner.
 
 Legal defaults are owner-approved; private contact address pending. DNS created through flarectl; standalone server repo cloned. HTTPS/publication validation will be appended after launch. Store dashboards and search-engine submissions remain owner actions.
+
+36 responsive layout checks passed across 320/768/1440 widths, both locales, all page types, and both themes after fixing the 320px English hero grid’s minimum-content overflow. Root make build passes all four apps. Server install/typecheck/Biome/static build also pass with the dedicated Node runtime. TLS certificate is issued, valid through 2026-12-25, with scheduled renewal.
