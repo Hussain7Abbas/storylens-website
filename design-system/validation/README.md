@@ -11,3 +11,7 @@ Server build initially exported successfully but Bun 1.3.14 crashed during Next 
 Legal defaults are owner-approved; private contact address pending. DNS created through flarectl; standalone server repo cloned. HTTPS/publication validation will be appended after launch. Store dashboards and search-engine submissions remain owner actions.
 
 36 responsive layout checks passed across 320/768/1440 widths, both locales, all page types, and both themes after fixing the 320px English hero grid’s minimum-content overflow. Root make build passes all four apps. Server install/typecheck/Biome/static build also pass with the dedicated Node runtime. TLS certificate is issued, valid through 2026-12-25, with scheduled renewal.
+
+GitHub Actions quality run 36273052600 passed dependency installation, typecheck, Biome, static export, browser tests and Lighthouse. Optional 3D enhancement now uses an original chapter texture behind the refracting lens, with demand rendering and damped pointer motion.
+
+Desktop WebGL smoke check mounted the optional canvas with zero page errors; chapter texture is clipped to the lens aperture. Captured en-desktop-lens.png for visual review. Browser test reports now include an HTML report for CI artifacts.

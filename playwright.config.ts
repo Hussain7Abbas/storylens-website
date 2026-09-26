@@ -3,7 +3,7 @@ export default defineConfig({
 	testDir: "tests",
 	fullyParallel: true,
 	retries: process.env.CI ? 1 : 0,
-	reporter: "list",
+	reporter: [["list"], ["html", { open: "never" }]],
 	use: { baseURL: "http://localhost:4173", trace: "retain-on-failure" },
 	webServer: {
 		command: "bunx serve out -l 4173",
