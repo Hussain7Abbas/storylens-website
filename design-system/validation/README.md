@@ -8,7 +8,7 @@ Lighthouse summary JSON files record actual 4G profile scores and timings. The e
 
 Server build initially exported successfully but Bun 1.3.14 crashed during Next worker shutdown. Dedicated Node 24.21.0 is installed at /opt/storylens-node and used only for the Next build runtime. Bun remains the dependency manager and package-script runner.
 
-Legal defaults are owner-approved; private contact address pending. DNS created through flarectl; standalone server repo cloned. HTTPS/publication validation will be appended after launch. Store dashboards and search-engine submissions remain owner actions.
+Legal defaults and hussain@iscoded.com are owner-approved. DNS created through flarectl; standalone server repo cloned. Production launched over HTTPS on 2026-09-27. Store dashboards and search-engine submissions remain owner actions.
 
 36 responsive layout checks passed across 320/768/1440 widths, both locales, all page types, and both themes after fixing the 320px English hero grid’s minimum-content overflow. Root make build passes all four apps. Server install/typecheck/Biome/static build also pass with the dedicated Node runtime. TLS certificate is issued, valid through 2026-12-25, with scheduled renewal.
 
@@ -17,3 +17,5 @@ GitHub Actions quality run 36273052600 passed dependency installation, typecheck
 Desktop WebGL smoke check mounted the optional canvas with zero page errors; chapter texture is clipped to the lens aperture. Captured en-desktop-lens.png for visual review. Browser test reports now include an HTML report for CI artifacts.
 
 Prelaunch HTTPS routing corrected: the HTTP-only bootstrap allowed TLS requests to reach the server default Raseen site. After certificate issuance, deploy/nginx/pending.conf reserves the Story Lens HTTPS host with a no-store, noindex 503 holding page until the legal contact address is supplied.
+
+Production verification: all six English/Arabic pages return 200, correct language/direction and approved mailto contact; browser page/console errors are zero. HTTP redirects to HTTPS; sitemap, robots and security.txt return 200; unknown paths return 404. CSP, HSTS and other security headers are present. No-transform prevents Cloudflare analytics injection, consistent with the no-analytics policy. Local health probes bypass server proxy settings with bounded timeouts and reload retries. Auto-deploy is enabled with the restricted key.
