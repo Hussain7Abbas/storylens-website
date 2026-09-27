@@ -6,6 +6,7 @@ import {
 	Highlighter,
 	Laptop,
 	MousePointer2,
+	Plus,
 	Replace,
 	ScanText,
 	ShieldCheck,
@@ -16,12 +17,14 @@ import { type Locale, siteConfig } from "@/lib/site-config";
 import { Reveal } from "../motion/Reveal";
 import { LensEnhancement } from "../three/LensEnhancement";
 import { Demo } from "./Demo";
+import { ExtensionScreenshots } from "./ExtensionScreenshots";
 
 const icons = [
 	Highlighter,
 	Replace,
 	ScanText,
 	MousePointer2,
+	Plus,
 	CloudOff,
 	Sparkles,
 ];
@@ -110,6 +113,7 @@ export function Landing({ locale }: { locale: Locale }) {
 					</div>
 				</div>
 			</section>
+			<ExtensionScreenshots locale={locale} />
 			<section
 				id="features"
 				className="container section"
@@ -130,7 +134,7 @@ export function Landing({ locale }: { locale: Locale }) {
 								data-reveal
 							>
 								<div className="feature-icon">
-									<Icon size={25} strokeWidth={1.5} aria-hidden="true" />
+									<Icon size={25} strokeWidth={1.75} aria-hidden="true" />
 								</div>
 								<h3>{title}</h3>
 								<p>{description}</p>
@@ -268,7 +272,9 @@ export function Landing({ locale }: { locale: Locale }) {
 							<details key={q}>
 								<summary>
 									{q}
-									<span aria-hidden="true">+</span>
+									<span aria-hidden="true">
+										<Plus size={20} />
+									</span>
 								</summary>
 								<p>{a}</p>
 							</details>

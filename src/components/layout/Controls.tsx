@@ -1,5 +1,5 @@
 "use client";
-import { Menu, Monitor, Moon, Sun, X } from "lucide-react";
+import { Languages, Menu, Monitor, Moon, Sun, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { getMessages } from "@/i18n/messages";
 import type { Locale } from "@/lib/site-config";
@@ -56,16 +56,23 @@ export function Controls({ locale }: { locale: Locale }) {
 		<div className="controls">
 			<a
 				className="locale-link"
+				aria-label={
+					locale === "en" ? "Switch to Arabic" : "التبديل إلى الإنجليزية"
+				}
 				href={href}
 				lang={locale === "en" ? "ar" : "en"}
 			>
-				{locale === "en" ? "العربية" : "English"}
+				<Languages className="locale-icon" size={19} aria-hidden="true" />
+				<span className="locale-name">
+					{locale === "en" ? "العربية" : "English"}
+				</span>
 			</a>
 			<button
 				type="button"
 				className="icon-button"
 				onClick={cycle}
 				aria-label={`${m.theme}: ${locale === "ar" ? ({ system: "النظام", light: "فاتح", dark: "داكن" })[theme] : theme}`}
+				title={`${m.theme}: ${locale === "ar" ? ({ system: "النظام", light: "فاتح", dark: "داكن" })[theme] : theme}`}
 			>
 				<ThemeIcon size={19} aria-hidden="true" />
 			</button>
@@ -78,6 +85,7 @@ export function Controls({ locale }: { locale: Locale }) {
 					dialog.current?.showModal();
 					setOpen(true);
 				}}
+				title={m.menu}
 			>
 				<Menu size={22} aria-hidden="true" />
 			</button>
@@ -93,6 +101,7 @@ export function Controls({ locale }: { locale: Locale }) {
 						className="icon-button"
 						onClick={close}
 						aria-label={locale === "ar" ? "إغلاق" : "Close"}
+						title={locale === "ar" ? "إغلاق" : "Close"}
 					>
 						<X aria-hidden="true" />
 					</button>

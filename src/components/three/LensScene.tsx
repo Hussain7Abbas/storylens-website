@@ -12,7 +12,7 @@ function readPalette() {
 		accent: style.getPropertyValue("--accent").trim(),
 	};
 }
-function Chapter() {
+function usePalette() {
 	const [palette, setPalette] = useState(readPalette);
 	useEffect(() => {
 		const observer = new MutationObserver(() => setPalette(readPalette()));
@@ -22,6 +22,10 @@ function Chapter() {
 		});
 		return () => observer.disconnect();
 	}, []);
+	return palette;
+}
+function Chapter() {
+	const palette = usePalette();
 	const texture = useMemo(() => {
 		const canvas = document.createElement("canvas");
 		canvas.width = 512;
@@ -69,6 +73,7 @@ function Chapter() {
 	);
 }
 function Lens() {
+	const palette = usePalette();
 	const mesh = useRef<Group>(null);
 	const target = useRef({ x: 0, y: 0 });
 	const { invalidate } = useThree();
@@ -109,7 +114,11 @@ function Lens() {
 			</mesh>
 			<mesh position={[0, 0, 0.12]}>
 				<torusGeometry args={[0.82, 0.035, 12, 48]} />
-				<meshStandardMaterial color="#92400e" metalness={0.5} roughness={0.2} />
+				<meshStandardMaterial
+					color={palette.accent}
+					metalness={0.5}
+					roughness={0.2}
+				/>
 			</mesh>
 		</group>
 	);

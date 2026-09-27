@@ -1,0 +1,14 @@
+{
+  "results": [
+    {
+      "theme": "light",
+      "violations": []
+    },
+    {
+      "theme": "dark",
+      "violations": []
+    }
+  ],
+  "errors": [],
+  "checks": "Tray lifecycle verified on macOS"
+}

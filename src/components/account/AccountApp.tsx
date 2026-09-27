@@ -236,6 +236,7 @@ function MissingExtension({ copy }: { copy: Copy }) {
 					type="button"
 					className="text-link"
 					onClick={() => window.location.reload()}
+					title={copy.reload}
 				>
 					{copy.reload}
 				</button>
@@ -277,6 +278,7 @@ function GoogleSignIn({ copy, locale }: { copy: Copy; locale: Locale }) {
 				className="button account-google"
 				disabled={busy}
 				onClick={() => void start()}
+				title={copy.continueWithGoogle}
 			>
 				{copy.continueWithGoogle}
 			</button>
@@ -445,7 +447,12 @@ function LoginForm({
 				required
 			/>
 			<FormError text={error} />
-			<button type="submit" className="button" disabled={busy}>
+			<button
+				type="submit"
+				className="button"
+				disabled={busy}
+				title={copy.login}
+			>
 				{copy.login}
 			</button>
 			<p className="account-switch">
@@ -532,7 +539,12 @@ function RegisterForm({
 				required
 			/>
 			<FormError text={error} />
-			<button type="submit" className="button" disabled={busy}>
+			<button
+				type="submit"
+				className="button"
+				disabled={busy}
+				title={copy.register}
+			>
 				{copy.register}
 			</button>
 			<p className="account-switch">
@@ -620,7 +632,12 @@ function PasswordForm({
 			/>
 			<FormError text={error} />
 			<div className="actions">
-				<button type="submit" className="button" disabled={busy}>
+				<button
+					type="submit"
+					className="button"
+					disabled={busy}
+					title={copy.save}
+				>
 					{copy.save}
 				</button>
 				<a className="text-link" href={base}>
@@ -738,7 +755,12 @@ function Profile({
 				/>
 				<FormError text={error} />
 				<div className="actions">
-					<button type="submit" className="button" disabled={busy}>
+					<button
+						type="submit"
+						className="button"
+						disabled={busy}
+						title={copy.save}
+					>
 						{copy.save}
 					</button>
 					<button
@@ -748,6 +770,7 @@ function Profile({
 							setError("");
 							setEditing(false);
 						}}
+						title={copy.cancel}
 					>
 						{copy.cancel}
 					</button>
@@ -784,6 +807,7 @@ function Profile({
 						onNotice(null);
 						setEditing(true);
 					}}
+					title={copy.edit}
 				>
 					{copy.edit}
 				</button>
@@ -794,6 +818,7 @@ function Profile({
 					type="button"
 					className="text-link"
 					onClick={() => void signOut()}
+					title={copy.logout}
 				>
 					{copy.logout}
 				</button>

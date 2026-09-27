@@ -14,7 +14,7 @@ import { isLocale, siteConfig } from "@/lib/site-config";
 const display = Cormorant_Garamond({
 	subsets: ["latin"],
 	weight: ["500", "600"],
-	variable: "--font-display",
+	variable: "--font-reading",
 	display: "optional",
 	preload: false,
 });
@@ -63,7 +63,22 @@ export async function generateMetadata({
 			images: ["/og.png"],
 		},
 		twitter: { card: "summary_large_image", images: ["/og.png"] },
-		icons: { icon: "/icon-small.png", apple: "/icon-small.png" },
+		icons: {
+			icon: [
+				{
+					url: "/favicon.ico",
+					sizes: "16x16 32x32 48x48",
+					type: "image/x-icon",
+				},
+				{ url: "/icons/icon-16.png", sizes: "16x16", type: "image/png" },
+				{ url: "/icons/icon-32.png", sizes: "32x32", type: "image/png" },
+			],
+			apple: {
+				url: "/apple-touch-icon.png",
+				sizes: "180x180",
+				type: "image/png",
+			},
+		},
 	};
 }
 const themeScript = `try{var t=localStorage.getItem('storylens-theme')||'system';document.documentElement.dataset.theme=t==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t}catch{}`;

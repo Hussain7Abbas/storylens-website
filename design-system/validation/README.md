@@ -19,3 +19,7 @@ Desktop WebGL smoke check mounted the optional canvas with zero page errors; cha
 Prelaunch HTTPS routing corrected: the HTTP-only bootstrap allowed TLS requests to reach the server default Raseen site. After certificate issuance, deploy/nginx/pending.conf reserves the Story Lens HTTPS host with a no-store, noindex 503 holding page until the legal contact address is supplied.
 
 Production verification: all six English/Arabic pages return 200, correct language/direction and approved mailto contact; browser page/console errors are zero. HTTP redirects to HTTPS; sitemap, robots and security.txt return 200; unknown paths return 404. CSP, HSTS and other security headers are present. No-transform prevents Cloudflare analytics injection, consistent with the no-analytics policy. Local health probes bypass server proxy settings with bounded timeouts and reload retries. Auto-deploy is enabled with the restricted key.
+
+## Ink & Iris update
+
+The later rebrand has its own [local validation record](ink-iris/README.md). Earlier captures and results above describe the preceding identity; use the new record for the current theme.

@@ -1,3 +1,4 @@
+import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import { getMessages } from "@/i18n/messages";
 import { type Locale, siteConfig } from "@/lib/site-config";
@@ -28,7 +29,7 @@ export function Header({ locale }: { locale: Locale }) {
 					rel="noopener"
 				>
 					{m.install}
-					<span aria-hidden="true">↗</span>
+					<ArrowUpRight size={18} aria-hidden="true" />
 				</a>
 			</div>
 		</header>

@@ -1,3 +1,5 @@
+> Historical discovery recommendations. The owner-approved Ink & Iris identity in [../MASTER.md](../MASTER.md) is the active source of truth; the palette and font suggestions below are retained as research.
+
 # Design System Master File
 
 > **LOGIC:** When building a specific page, first check `design-system/pages/[page-name].md`.

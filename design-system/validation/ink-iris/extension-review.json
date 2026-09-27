@@ -1,0 +1,71 @@
+{
+  "results": [
+    {
+      "locale": "en",
+      "mode": "light",
+      "theme": "light",
+      "dir": "ltr",
+      "overflow": false,
+      "body": "rgb(247, 247, 251)",
+      "primary": "#6554c0",
+      "violations": []
+    },
+    {
+      "locale": "en",
+      "mode": "dark",
+      "theme": "dark",
+      "dir": "ltr",
+      "overflow": false,
+      "body": "rgb(23, 24, 32)",
+      "primary": "#b5a8f5",
+      "violations": []
+    },
+    {
+      "locale": "ar",
+      "mode": "light",
+      "theme": "light",
+      "dir": "rtl",
+      "overflow": false,
+      "body": "rgb(247, 247, 251)",
+      "primary": "#6554c0",
+      "violations": []
+    },
+    {
+      "locale": "ar",
+      "mode": "dark",
+      "theme": "dark",
+      "dir": "rtl",
+      "overflow": false,
+      "body": "rgb(23, 24, 32)",
+      "primary": "#b5a8f5",
+      "violations": []
+    }
+  ],
+  "responsive": [
+    {
+      "view": "options",
+      "width": 320,
+      "overflow": false,
+      "embedded": true
+    },
+    {
+      "view": "embedded",
+      "width": 320,
+      "overflow": false,
+      "embedded": true
+    },
+    {
+      "view": "options",
+      "width": 768,
+      "overflow": false,
+      "embedded": true
+    },
+    {
+      "view": "embedded",
+      "width": 768,
+      "overflow": false,
+      "embedded": true
+    }
+  ],
+  "pageErrors": []
+}

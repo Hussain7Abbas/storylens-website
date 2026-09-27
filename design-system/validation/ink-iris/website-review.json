@@ -1,0 +1,384 @@
+{
+  "layoutChecks": 48,
+  "results": [
+    {
+      "locale": "en",
+      "route": "",
+      "mode": "light",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "privacy/",
+      "mode": "light",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "terms/",
+      "mode": "light",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "profile/login/",
+      "mode": "light",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "",
+      "mode": "light",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "privacy/",
+      "mode": "light",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "terms/",
+      "mode": "light",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "profile/login/",
+      "mode": "light",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "",
+      "mode": "light",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "privacy/",
+      "mode": "light",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "terms/",
+      "mode": "light",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "profile/login/",
+      "mode": "light",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "",
+      "mode": "dark",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "privacy/",
+      "mode": "dark",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "terms/",
+      "mode": "dark",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "profile/login/",
+      "mode": "dark",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "",
+      "mode": "dark",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "privacy/",
+      "mode": "dark",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "terms/",
+      "mode": "dark",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "profile/login/",
+      "mode": "dark",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "",
+      "mode": "dark",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "privacy/",
+      "mode": "dark",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "terms/",
+      "mode": "dark",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "route": "profile/login/",
+      "mode": "dark",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "",
+      "mode": "light",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "privacy/",
+      "mode": "light",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "terms/",
+      "mode": "light",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "profile/login/",
+      "mode": "light",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "",
+      "mode": "light",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "privacy/",
+      "mode": "light",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "terms/",
+      "mode": "light",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "profile/login/",
+      "mode": "light",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "",
+      "mode": "light",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "privacy/",
+      "mode": "light",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "terms/",
+      "mode": "light",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "profile/login/",
+      "mode": "light",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "",
+      "mode": "dark",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "privacy/",
+      "mode": "dark",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "terms/",
+      "mode": "dark",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "profile/login/",
+      "mode": "dark",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "",
+      "mode": "dark",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "privacy/",
+      "mode": "dark",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "terms/",
+      "mode": "dark",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "profile/login/",
+      "mode": "dark",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "",
+      "mode": "dark",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "privacy/",
+      "mode": "dark",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "terms/",
+      "mode": "dark",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "locale": "ar",
+      "route": "profile/login/",
+      "mode": "dark",
+      "width": 1440,
+      "overflow": false
+    }
+  ],
+  "contrast": [
+    {
+      "text": "#202132",
+      "background": "#f7f7fb",
+      "ratio": 14.83
+    },
+    {
+      "text": "#656779",
+      "background": "#ffffff",
+      "ratio": 5.57
+    },
+    {
+      "text": "#ffffff",
+      "background": "#6554c0",
+      "ratio": 5.86
+    },
+    {
+      "text": "#6554c0",
+      "background": "#eeebfa",
+      "ratio": 5
+    },
+    {
+      "text": "#eeeff6",
+      "background": "#171820",
+      "ratio": 15.42
+    },
+    {
+      "text": "#a8abbe",
+      "background": "#22232e",
+      "ratio": 6.85
+    },
+    {
+      "text": "#211a39",
+      "background": "#b5a8f5",
+      "ratio": 7.77
+    },
+    {
+      "text": "#b5a8f5",
+      "background": "#302a45",
+      "ratio": 6.41
+    }
+  ],
+  "pageErrors": []
+}

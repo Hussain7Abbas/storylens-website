@@ -205,5 +205,21 @@
 		"oauthWorking": "Finishing sign-in…",
 		"oauthFailed": "Sign-in with Google didn’t complete. Please try again.",
 		"tryAgain": "Back to sign in"
+	},
+	"screenshots": {
+		"eyebrow": "INSIDE THE EXTENSION",
+		"title": "Your reading tools, up close.",
+		"intro": "Real extension screens with sample data. The interface follows your light or dark theme.",
+		"items": [
+			[
+				"Your story’s glossary",
+				"Keep keywords, aliases, and chapter versions together."
+			],
+			["Room to focus", "Forms use the full page beneath the navigation bar."],
+			[
+				"Pick, then choose",
+				"Select text, choose its role, and find its parent with fuzzy search."
+			]
+		]
 	}
 }

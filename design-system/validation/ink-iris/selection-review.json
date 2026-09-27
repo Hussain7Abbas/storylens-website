@@ -1,0 +1,12 @@
+{
+  "checks": [
+    "Keyword form navbar Back restores list",
+    "Replacement Back restores active tab",
+    "Selected text opens keyword page",
+    "Selected text opens alias page",
+    "Selected text opens version page",
+    "Async offline fuzzy parent search and default AI"
+  ],
+  "violations": [],
+  "errors": []
+}
