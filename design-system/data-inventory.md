@@ -12,11 +12,12 @@ Source snapshots: backend `6a800550c57c3e022aebf40633adeb4337edc9da`, extension 
 | Provider selection | backend lib/ai/client.ts | Google Gemini default configurable; no zero-retention guarantee |
 | Summaries | extension lib/desktop-client; client server/service/providers; docs/client.md | Requested page body sanitized, may retain personal content; local transport then own provider; no backend summary path |
 | Local preferences and downloaded references | extension lib/offline and popup settings; client config.ts | Local until cleared; queue sends supported edits when synced; desktop uninstall does not promise settings removal |
-| Extension permissions | extension wxt.config.ts and content entry point | tabs/storage/alarms/unlimitedStorage, HTTP(S) content script, API and loopback host access |
+| Extension permissions | extension wxt.config.ts and content entry point | tabs/storage/alarms/unlimitedStorage, HTTP(S) content script, account bridge content script on the website origin only, API and loopback host access |
 | History | extension content/API flows | No dedicated visited-URL list found; avoid claiming no URL/chapter data ever reaches API |
 | Logs | backend plugins/logger.ts; server /etc/logrotate.d/nginx | method/status/path/errors; Nginx daily rotate 14; app-log TTL not established |
+| Google sign-in | backend lib/auth, routes/accounts.ts (off until GOOGLE_CLIENT_ID/SECRET are set) | Google account ID, name, email, picture URL, and access/refresh/ID tokens in the account and user tables; a short-lived API session cookie during the callback. Privacy policy not yet updated for this; owner review required before enabling |
 | Account deletion | accounts.ts; Better Auth configuration | No enabled self-service deletion path verified; use manual private requests |
-| Website | website controls, static export, Nginx config | Theme localStorage, URL locale, Cloudflare/network logs; no analytics |
+| Website | website controls, static export, Nginx config, account pages | Theme localStorage, URL locale, Cloudflare/network logs; no analytics. Account pages send email, username, display name, and passwords to the Story Lens API, and exchange the session token with the installed extension via `window.postMessage`; the website itself does not store the session |
 | Hosting region/transfers | ssh raseen infrastructure | Host country/provider not authoritatively established; do not promise single-country processing or contractual transfer terms |
 
 No ad integration, sale, or Story Lens model-training path was found in the inspected implementation. This does not bind upstream AI providers. Provider privacy links are included rather than inventing retention periods.

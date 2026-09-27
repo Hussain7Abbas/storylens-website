@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { siteConfig } from "../src/lib/site-config";
 
 async function files(root: string): Promise<string[]> {
 	const entries = await readdir(root, { withFileTypes: true });
@@ -13,6 +14,8 @@ async function files(root: string): Promise<string[]> {
 	);
 	return nested.flat();
 }
+// Account pages call the Story Lens API directly from the browser.
+const apiOrigin = new URL(siteConfig.api).origin;
 const hashes = new Set<string>();
 for (const file of await files("out")) {
 	if (!file.endsWith(".html")) continue;
@@ -26,7 +29,7 @@ for (const file of await files("out")) {
 			);
 	}
 }
-const csp = `default-src 'self'; script-src 'self' ${[...hashes].sort().join(" ")}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'`;
+const csp = `default-src 'self'; script-src 'self' ${[...hashes].sort().join(" ")}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ${apiOrigin}; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'`;
 const headers = [
 	`add_header Content-Security-Policy "${csp}" always;`,
 	`add_header Strict-Transport-Security "max-age=31536000" always;`,

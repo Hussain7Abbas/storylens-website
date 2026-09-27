@@ -46,6 +46,7 @@ export function Footer({ locale }: { locale: Locale }) {
 					<p>{m.footerTag}</p>
 				</div>
 				<nav aria-label={locale === "ar" ? "روابط الموقع" : "Site links"}>
+					<a href={`/${locale}/profile/`}>{m.account.nav}</a>
 					<a href={`/${locale}/privacy/`}>{m.privacy}</a>
 					<a href={`/${locale}/terms/`}>{m.terms}</a>
 					<a href={siteConfig.extension}>
