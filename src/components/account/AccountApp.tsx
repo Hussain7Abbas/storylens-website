@@ -25,6 +25,7 @@ import {
 	requestSession,
 	subscribeSession,
 } from "@/lib/account/bridge";
+import { trackEvent } from "@/lib/analytics";
 import { type Locale, siteConfig } from "@/lib/site-config";
 
 export type AccountView =
@@ -228,7 +229,12 @@ function MissingExtension({ copy }: { copy: Copy }) {
 			<h2>{copy.missingTitle}</h2>
 			<p>{copy.missingBody}</p>
 			<div className="actions">
-				<a className="button" href={siteConfig.chrome} rel="noopener">
+				<a
+					className="button"
+					href={siteConfig.chrome}
+					rel="noopener"
+					data-analytics-cta="account"
+				>
 					{copy.missingInstall}
 					<span aria-hidden="true">↗</span>
 				</a>
@@ -314,7 +320,10 @@ function OAuthCallback({
 			return;
 		}
 		completeOAuth(locale, guest?.token)
-			.then(onSuccess)
+			.then((session) => {
+				trackEvent("login", { method: "google" });
+				return onSuccess(session);
+			})
 			.catch((caught: unknown) =>
 				setError(errorText(caught, copy.oauthFailed)),
 			);
@@ -414,12 +423,12 @@ function LoginForm({
 		setBusy(true);
 		setError("");
 		try {
-			await onSuccess(
-				await login(locale, {
-					email: field(form, "email").trim(),
-					password: field(form, "password"),
-				}),
-			);
+			const session = await login(locale, {
+				email: field(form, "email").trim(),
+				password: field(form, "password"),
+			});
+			trackEvent("login", { method: "email" });
+			await onSuccess(session);
 		} catch (caught) {
 			setError(
 				caught instanceof AccountApiError && caught.status === 401
@@ -485,18 +494,18 @@ function RegisterForm({
 		setError("");
 		try {
 			// A guest token upgrades the guest in place, keeping its data.
-			await onSuccess(
-				await register(
-					locale,
-					{
-						email: field(form, "email").trim(),
-						username: field(form, "username").trim(),
-						password: field(form, "new-password"),
-						...(name ? { name } : {}),
-					},
-					guest?.token,
-				),
+			const session = await register(
+				locale,
+				{
+					email: field(form, "email").trim(),
+					username: field(form, "username").trim(),
+					password: field(form, "new-password"),
+					...(name ? { name } : {}),
+				},
+				guest?.token,
 			);
+			trackEvent("sign_up", { method: guest ? "guest_upgrade" : "email" });
+			await onSuccess(session);
 		} catch (caught) {
 			setError(errorText(caught, copy.requestFailed));
 		} finally {

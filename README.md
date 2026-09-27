@@ -6,7 +6,7 @@ Production: https://storylens.iscoded.com · [Extension](https://github.com/Huss
 
 ## Develop
 
-Use Bun 1.3.6 or newer. `bun install --frozen-lockfile`, `make dev`, `make typecheck`, `make lint`, `make build`, `make start`, `make test`, `make lhci`. Biome owns formatting and linting. The static export is `out/`. Root requests redirect to `/en/`; `/ar/` is RTL. There is no analytics, API route, or runtime server.
+Use Bun 1.3.6 or newer. `bun install --frozen-lockfile`, `make dev`, `make typecheck`, `make lint`, `make build`, `make start`, `make test`, `make lhci`. Biome owns formatting and linting. The static export is `out/`. Root requests redirect to `/en/`; `/ar/` is RTL. There is no API route or runtime server. Google Analytics 4 is opt-in: it is built only when `NEXT_PUBLIC_GA_MEASUREMENT_ID` is set, and gtag.js loads only after the visitor accepts the consent banner.
 
 ## Deploy
 

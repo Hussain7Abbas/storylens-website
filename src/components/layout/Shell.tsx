@@ -1,7 +1,9 @@
 import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import { getMessages } from "@/i18n/messages";
+import { analyticsEnabled } from "@/lib/analytics";
 import { type Locale, siteConfig } from "@/lib/site-config";
+import { AnalyticsSettingsButton } from "./AnalyticsConsent";
 import { Controls } from "./Controls";
 export function Header({ locale }: { locale: Locale }) {
 	const m = getMessages(locale);
@@ -26,6 +28,7 @@ export function Header({ locale }: { locale: Locale }) {
 				<a
 					className="button compact header-install"
 					href={siteConfig.chrome}
+					data-analytics-cta="header"
 					rel="noopener"
 				>
 					{m.install}
@@ -50,6 +53,9 @@ export function Footer({ locale }: { locale: Locale }) {
 					<a href={`/${locale}/profile/`}>{m.account.nav}</a>
 					<a href={`/${locale}/privacy/`}>{m.privacy}</a>
 					<a href={`/${locale}/terms/`}>{m.terms}</a>
+					{analyticsEnabled ? (
+						<AnalyticsSettingsButton locale={locale} />
+					) : null}
 					<a href={siteConfig.extension}>
 						GitHub · {locale === "ar" ? "الإضافة" : "Extension"}
 					</a>

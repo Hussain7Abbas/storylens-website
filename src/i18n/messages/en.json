@@ -100,7 +100,7 @@
 		"Summaries start when you click; your chosen AI provider receives the page content.",
 		"AI-assisted chapter detection sends the page URL and HTML through the API to OpenRouter.",
 		"Downloaded reference data and extension preferences live on your device.",
-		"This website has no analytics or advertising scripts."
+		"Website analytics load only if you allow them, and there are no advertising scripts."
 	],
 	"privacy": "Privacy Policy",
 	"terms": "Terms of Use",
@@ -150,6 +150,15 @@
 	"home": "Back to Story Lens",
 	"notFound": "This chapter is missing.",
 	"notFoundBody": "The page you’re looking for could not be found.",
+	"analytics": {
+		"title": "Help improve Story Lens",
+		"body": "May we use Google Analytics to count visits and see which pages help readers? It sets first-party cookies and sends usage data to Google. Nothing loads unless you allow it.",
+		"accept": "Allow analytics",
+		"decline": "No thanks",
+		"settings": "Analytics settings",
+		"learnMore": "Privacy policy",
+		"label": "Analytics consent"
+	},
 	"account": {
 		"nav": "Your profile",
 		"title": "Your profile",

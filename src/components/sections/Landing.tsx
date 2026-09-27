@@ -41,7 +41,12 @@ export function Landing({ locale }: { locale: Locale }) {
 					<h1 id="hero-title">{m.headline}</h1>
 					<p className="hero-intro">{m.intro}</p>
 					<div className="actions">
-						<a className="button" href={siteConfig.chrome} rel="noopener">
+						<a
+							className="button"
+							href={siteConfig.chrome}
+							rel="noopener"
+							data-analytics-cta="hero"
+						>
 							{m.install}
 							<ArrowUpRight size={19} aria-hidden="true" />
 						</a>
@@ -294,7 +299,12 @@ export function Landing({ locale }: { locale: Locale }) {
 				<h2 id="final-title">{m.finalTitle}</h2>
 				<p>{m.finalBody}</p>
 				<div className="actions">
-					<a className="button" href={siteConfig.chrome} rel="noopener">
+					<a
+						className="button"
+						href={siteConfig.chrome}
+						rel="noopener"
+						data-analytics-cta="final"
+					>
 						{m.install}
 						<ArrowUpRight size={19} aria-hidden="true" />
 					</a>
