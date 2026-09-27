@@ -7,8 +7,10 @@ import {
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import type { ReactNode } from "react";
+import { AnalyticsConsent } from "@/components/layout/AnalyticsConsent";
 import { Footer, Header } from "@/components/layout/Shell";
 import { getMessages } from "@/i18n/messages";
+import { analyticsEnabled, gtagStub } from "@/lib/analytics";
 import { isLocale, siteConfig } from "@/lib/site-config";
 
 const display = Cormorant_Garamond({
@@ -102,6 +104,7 @@ export default async function LocaleLayout({
 		>
 			<head>
 				<script>{themeScript}</script>
+				{analyticsEnabled ? <script>{gtagStub}</script> : null}
 			</head>
 			<body>
 				<a className="skip-link" href="#main">
@@ -110,6 +113,7 @@ export default async function LocaleLayout({
 				<Header locale={locale} />
 				<main id="main">{children}</main>
 				<Footer locale={locale} />
+				{analyticsEnabled ? <AnalyticsConsent locale={locale} /> : null}
 			</body>
 		</html>
 	);

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { analyticsEnabled, analyticsOrigins } from "../src/lib/analytics";
 import { siteConfig } from "../src/lib/site-config";
 
 async function files(root: string): Promise<string[]> {
@@ -29,7 +30,10 @@ for (const file of await files("out")) {
 			);
 	}
 }
-const csp = `default-src 'self'; script-src 'self' ${[...hashes].sort().join(" ")}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ${apiOrigin}; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'`;
+// Google Analytics origins are allowed only when a measurement ID is built in.
+const ga = (origins: readonly string[]) =>
+	analyticsEnabled ? ` ${origins.join(" ")}` : "";
+const csp = `default-src 'self'; script-src 'self' ${[...hashes].sort().join(" ")}${ga(analyticsOrigins.script)}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:${ga(analyticsOrigins.img)}; font-src 'self'; connect-src 'self' ${apiOrigin}${ga(analyticsOrigins.connect)}; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'`;
 const headers = [
 	`add_header Content-Security-Policy "${csp}" always;`,
 	`add_header Strict-Transport-Security "max-age=31536000" always;`,

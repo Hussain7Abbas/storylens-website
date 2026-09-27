@@ -1,13 +1,13 @@
 ---
 title: "Privacy Policy"
-lastUpdated: "2026-09-28"
-version: "1.0.1"
-changelog: "Clarified extension usage analytics / توضيح تحليلات استخدام الإضافة"
+lastUpdated: "2026-09-27"
+version: "1.1.0"
+changelog: "Added opt-in Google Analytics on the website / إضافة Google Analytics الاختيارية في الموقع"
 ---
 
 ## At a glance
 
-Story Lens adds character reference tools and text replacements to your browser. Accounts and shared reference data use the Story Lens API. Optional AI chapter detection sends page URL and HTML to OpenRouter and a model provider. Optional summaries send the selected page through the desktop companion to your own AI provider. The extension may send usage events to Google Analytics if configured and enabled; this website has no analytics or advertising scripts. Hosting and security services still process network requests.
+Story Lens adds character reference tools and text replacements to your browser. Accounts and shared reference data use the Story Lens API. Optional AI chapter detection sends page URL and HTML to OpenRouter and a model provider. Optional summaries send the selected page through the desktop companion to your own AI provider. This website loads Google Analytics only if you allow it and has no advertising scripts. The extension does not include analytics. Hosting and security services still process network requests.
 
 ## Operator and contact
 
@@ -40,19 +40,25 @@ Extension-local storage and IndexedDB hold language, preferences, launcher posit
 
 The extension's usage analytics is inactive unless the build includes Google Analytics credentials. When configured, it defaults to on and can be turned off at **Settings → General → Anonymous usage analytics**. Events can report installation or update, screens opened, requested AI actions, and detection of a supported novel page. That page event includes the reading site's hostname and whether a chapter was detected. Each event carries a randomly generated persistent analytics client ID, a session ID and the extension version. Events exclude page text, full URLs, novel and chapter titles, glossary content, prompts, email and account IDs. Google may receive standard network information such as an IP address. The client ID remains in extension-local storage until cleared or the extension is removed; Google's retention settings govern data it receives. Turning the switch off stops future events.
 
-The website saves only your theme choice in localStorage. Locale is represented in the URL. This website does not run analytics or ad scripts. The extension does not collect a full browsing history, though enabled analytics sends supported reading-site hostnames. API operations may include novel slugs, chapter metadata, and the page URL for requested selector detection. Ordinary server access logs can contain requested URLs.
+The website saves your theme choice and your analytics choice in localStorage. Locale is represented in the URL. We do not run ad scripts or collect a separate list of your browsing history outside the optional website analytics described below. API operations may include novel slugs, chapter metadata, and the page URL for requested selector detection. Ordinary server access logs can contain requested URLs.
+
+## Website analytics
+
+This website asks before loading Google Analytics 4. If you choose "No thanks", or make no choice, the Google tag is not loaded and no analytics cookies are set. If you choose "Allow analytics", the website loads Google's tag from googletagmanager.com, which sets first-party `_ga` cookies and sends usage data to Google. That data includes the page path (query strings and fragments are removed), referrer, browser and device details, an approximate location that Google derives from your IP address, and a few interactions: clicks on the Chrome Web Store install buttons and successful sign-in or registration, recorded with the method only. Email addresses, usernames, and account IDs are not sent. Google Signals and ad personalization are disabled, and advertising consent signals stay denied.
+
+You can change your choice at any time with "Analytics settings" in the site footer. Withdrawing consent stops the tag from sending data and, in browsers that support the Cookie Store API, removes the `_ga` cookies; otherwise clear this site's cookies in your browser. The Story Lens extension and desktop companion do not include analytics.
 
 ## Hosting, logs, and third parties
 
 This site is served by Nginx on the operator’s server behind Cloudflare. Requests can reveal IP addresses, request time, paths, response status, browser information, and referrers to hosting and network services. Website Nginx access logs rotate daily with 14 rotations retained. Backend logs record method, status, path, and errors; error messages and stacks can contain diagnostic data. Backend application log retention has no verified fixed limit, so no automatic deletion deadline is promised.
 
-Processors and independent services include the infrastructure host, Cloudflare, ImgBB, OpenRouter, its model providers, Google Analytics when configured and enabled in the extension, and—in the summary path—your chosen Anthropic or OpenAI service. These services may process data internationally under their own policies. No single-country processing or specific transfer mechanism is promised here. We may disclose data when legally required or reasonably necessary to protect security and rights.
+Processors and independent services include the infrastructure host, Cloudflare, ImgBB, OpenRouter, its model providers, Google (only for website analytics you allow), and—in the summary path—your chosen Anthropic or OpenAI service. These services may process data internationally under their own policies. No single-country processing or specific transfer mechanism is promised here. We may disclose data when legally required or reasonably necessary to protect security and rights.
 
 See [Cloudflare’s privacy policy](https://www.cloudflare.com/policies/privacy/), [ImgBB’s privacy policy](https://imgbb.com/privacy), [OpenRouter’s privacy policy](https://openrouter.ai/privacy), [Google’s privacy policy](https://policies.google.com/privacy), [Anthropic’s privacy policy](https://www.anthropic.com/legal/privacy), and [OpenAI’s privacy policy](https://openai.com/policies/privacy-policy/). External pages have their own terms.
 
 ## Purposes and legal bases
 
-We process account and reference data to provide the requested service, security and operational data to maintain and protect it, optional usage events to measure and improve reading features, and optional AI content to fulfill the action you choose. Where GDPR or UK GDPR applies, the relevant bases may be performance of a contract, legitimate interests in operating a secure service, and consent where applicable to optional processing. You can disable extension analytics or avoid optional AI processing. We do not sell personal information or share it for targeted advertising. Story Lens does not use submitted page content to train its own models; upstream providers may have different practices.
+We process account and reference data to provide the requested service, security and operational data to maintain and protect it, and optional AI content to fulfill the action you choose. Where GDPR or UK GDPR applies, the relevant bases may be performance of a contract, legitimate interests in operating a secure service, and consent where applicable to optional processing, including website analytics. You can avoid optional AI processing by not invoking it and avoid analytics by not allowing it. We do not sell personal information or share it for targeted advertising. Story Lens does not use submitted page content to train its own models; upstream providers may have different practices.
 
 ## Retention and deletion
 
@@ -61,7 +67,7 @@ We process account and reference data to provide the requested service, security
 - **Images:** stored by ImgBB under its retention practices. Removing a reference in Story Lens does not guarantee removal of every third-party copy.
 - **AI page content:** processed for the request. The chapter-detection route does not persist raw HTML, and the companion does not log summaries. Upstream retention is governed by provider policies and account settings.
 - **Device data:** retained until cleared. Uninstalling does not delete server accounts or necessarily remove desktop settings files.
-- **Extension usage analytics:** the client ID stays in extension-local storage until cleared or uninstalled; Google processes received events under its own retention settings. Turning analytics off stops future events.
+- **Website analytics:** the `_ga` cookies use Google’s configured expiry until you withdraw consent or clear them. Analytics data held by Google follows the Google Analytics property’s data-retention setting and Google’s policies; we do not promise a fixed deletion period.
 - **Website access logs:** daily rotation with 14 retained rotations; exceptional legal or incident preservation may apply.
 
 Backups and security records may take longer to remove. We do not claim an unverified fixed database or backup deletion period.
@@ -80,4 +86,4 @@ Extension data is used to provide and secure Story Lens’s reading tools, accou
 
 ## Changes and language
 
-We update this page when data handling changes. The date and version identify the current notice; material changes may also be announced through release notes. English controls if the Arabic translation differs, subject to mandatory local law. Version 1.0.1 clarifies the extension's optional Google Analytics events.
+We update this page when data handling changes. The date and version identify the current notice; material changes may also be announced through release notes. English controls if the Arabic translation differs, subject to mandatory local law. Version 1.0.0 was the initial policy; version 1.1.0 adds opt-in website analytics.
