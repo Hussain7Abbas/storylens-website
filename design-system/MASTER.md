@@ -50,7 +50,7 @@ Reduced motion disables reveals and the lazy scene, and removes UI transitions. 
 
 ## Content and validation
 
-Use one h1, labeled sections, locale-preserving links, native FAQ/details and native mobile dialog/Escape behavior. All product claims still map to `copy-deck.md` and `data-inventory.md`. Demo characters remain Mira, Vale and Orin. Source is PolyForm Noncommercial, not permissively open source.
+Use one h1, labeled sections, locale-preserving links, native FAQ/details and native dialog/Escape behavior. All product claims still map to `copy-deck.md` and `data-inventory.md`. The interactive reading demo uses Mira, Vale and Orin. The real extension walkthrough uses the original Lantern Archive sample with Mira and Rowan, localized as أرشيف الفوانيس with ميرا and روان. Keep the walkthrough videos and screenshot gallery paired with the page language; use native video controls, WebVTT captions, a text alternative, and playback on demand. Website captions sit at the top center over a dimmed blurred panel and fade with playback time; reduced motion removes that fade. Source is PolyForm Noncommercial, not permissively open source.
 
 Historical research in `skill-recommendations.md` and `design-system/story-lens/MASTER.md` is not the active palette. It informed the editorial structure; the owner's Ink & Iris choice supersedes its amber/color/font recommendations. The local UI UX Pro Max query `reading extension restrained violet --design-system` supported restrained grids and a coherent hierarchy; reject its amber palette and unverified testimonials in favor of the approved direction and existing original demo.
 

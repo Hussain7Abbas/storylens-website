@@ -1,0 +1,38 @@
+[
+  {
+    "url": "/en/",
+    "date": "2026-09-27T22:33:35.853Z",
+    "scores": {
+      "performance": 1,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1
+    },
+    "lcp": 1207,
+    "cls": 0
+  },
+  {
+    "url": "/ar/",
+    "date": "2026-09-27T22:33:46.588Z",
+    "scores": {
+      "performance": 1,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1
+    },
+    "lcp": 1419,
+    "cls": 0
+  },
+  {
+    "url": "/en/privacy/",
+    "date": "2026-09-27T22:33:57.921Z",
+    "scores": {
+      "performance": 1,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1
+    },
+    "lcp": 1149,
+    "cls": 0
+  }
+]

@@ -66,9 +66,9 @@ for (const locale of ["en", "ar"] as const) {
 				exact: true,
 			})
 			.click();
-		await expect(page.locator("dialog")).toBeVisible();
+		await expect(page.locator(".mobile-dialog")).toBeVisible();
 		await page.keyboard.press("Escape");
-		await expect(page.locator("dialog")).not.toBeVisible();
+		await expect(page.locator(".mobile-dialog")).not.toBeVisible();
 	});
 	for (const theme of ["light", "dark"] as const)
 		for (const route of ["", "privacy/", "terms/"]) {

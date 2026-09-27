@@ -221,5 +221,56 @@
 				"Select text, choose its role, and find its parent with fuzzy search."
 			]
 		]
+	},
+	"readingShowcase": {
+		"watch": "Watch the walkthrough",
+		"eyebrow": "A CHAPTER WITH STORY LENS",
+		"title": "See your story come into focus.",
+		"intro": "Follow a real reading session in The Lantern Archive, an original sample story. See how your glossary stays close while you read.",
+		"videoTitle": "From the first highlight to a saved note.",
+		"videoDescription": "A short walkthrough of the extension in action, with on-screen captions and no sound.",
+		"duration": "35-second walkthrough",
+		"transcript": "Read the walkthrough",
+		"galleryTitle": "Explore the details",
+		"galleryIntro": "Open any screenshot for a closer look.",
+		"enlarge": "Enlarge screenshot",
+		"close": "Close screenshot",
+		"videoFallback": "Open the walkthrough video",
+		"captions": "English",
+		"steps": [
+			"Read with color-coded characters, places and factions",
+			"Recognize alternative names for each character",
+			"See character notes for your current chapter",
+			"Replace words with your preferred terms",
+			"Edit your character reference while you read",
+			"Save a character note locally, even while offline"
+		],
+		"items": [
+			{
+				"title": "Follow every character",
+				"description": "Give characters, places, and factions their own colors.",
+				"alt": "The Lantern Archive chapter with Mira, Rowan, and story locations highlighted beside the extension glossary."
+			},
+			{
+				"title": "Connect their names",
+				"description": "Keep an alias linked to the character you already know.",
+				"alt": "Mira’s character detail lists her alternative names alongside the highlighted chapter."
+			},
+			{
+				"title": "Stay with your chapter",
+				"description": "See the character details saved for your current chapter.",
+				"alt": "Chapter 12 reading page with chapter-specific character versions in Story Lens."
+			},
+			{
+				"title": "Make the wording yours",
+				"description": "Swap a phrase for the term you prefer as you read.",
+				"alt": "The sample chapter replaces jade pendant with starlight pendant using the extension’s replacement rule."
+			},
+			{
+				"title": "Keep your own notes",
+				"description": "Edit character details without leaving your reading page.",
+				"alt": "Character editor open next to the sample chapter, with name, aliases, and notes fields."
+			}
+		]
 	}
 }

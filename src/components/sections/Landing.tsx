@@ -18,6 +18,7 @@ import { Reveal } from "../motion/Reveal";
 import { LensEnhancement } from "../three/LensEnhancement";
 import { Demo } from "./Demo";
 import { ExtensionScreenshots } from "./ExtensionScreenshots";
+import { ReadingShowcase } from "./ReadingShowcase";
 
 const icons = [
 	Highlighter,
@@ -45,8 +46,8 @@ export function Landing({ locale }: { locale: Locale }) {
 							{m.install}
 							<ArrowUpRight size={19} aria-hidden="true" />
 						</a>
-						<a className="text-link" href="#demo">
-							{m.action}
+						<a className="text-link" href="#walkthrough">
+							{m.readingShowcase.watch}
 							<ArrowRight size={18} aria-hidden="true" />
 						</a>
 					</div>
@@ -113,6 +114,7 @@ export function Landing({ locale }: { locale: Locale }) {
 					</div>
 				</div>
 			</section>
+			<ReadingShowcase locale={locale} />
 			<ExtensionScreenshots locale={locale} />
 			<section
 				id="features"
