@@ -1,13 +1,13 @@
 ---
 title: "Privacy Policy"
-lastUpdated: "2026-09-27"
-version: "1.0.0"
-changelog: "Initial publication / النشر الأول"
+lastUpdated: "2026-09-28"
+version: "1.0.1"
+changelog: "Clarified extension usage analytics / توضيح تحليلات استخدام الإضافة"
 ---
 
 ## At a glance
 
-Story Lens adds character reference tools and text replacements to your browser. Accounts and shared reference data use the Story Lens API. Optional AI chapter detection sends page URL and HTML to OpenRouter and a model provider. Optional summaries send the selected page through the desktop companion to your own AI provider. This website has no analytics or advertising scripts. Hosting and security services still process network requests.
+Story Lens adds character reference tools and text replacements to your browser. Accounts and shared reference data use the Story Lens API. Optional AI chapter detection sends page URL and HTML to OpenRouter and a model provider. Optional summaries send the selected page through the desktop companion to your own AI provider. The extension may send usage events to Google Analytics if configured and enabled; this website has no analytics or advertising scripts. Hosting and security services still process network requests.
 
 ## Operator and contact
 
@@ -23,7 +23,7 @@ Novels, chapter metadata, keywords, descriptions, aliases, versions, categories,
 
 **Chapter-selector detection:** when you choose AI-assisted detection in the selector form, the extension sends the current page URL and HTML to the Story Lens API, which calls OpenRouter and its upstream model provider. The configured default model is Google Gemini, but configuration or a request can select another model. The returned selectors populate a form; saving the form stores selector information separately. The detection route has no database write for raw HTML. Provider retention and training practices depend on the provider and routing settings; do not assume zero retention.
 
-**Page summaries:** when you click Summarize page, the extension removes scripts, forms, controls, hidden nodes, and prior summary UI from a clone of the page body. The remaining HTML goes to the authenticated desktop service on your own computer, then to the provider behind your installed Claude Code or Codex CLI. Visible personal information may remain. The Story Lens backend does not receive this summary request. The companion does not log prompts or output; provider processing follows your own provider account terms. Do not submit pages you are not allowed to share.
+**Desktop AI reading tools:** when you click Summarize page, the extension removes scripts, forms, controls, hidden nodes, and prior summary UI from a clone of the page body. The remaining HTML goes to the authenticated desktop service on your own computer, then to the provider behind your installed Claude Code or Codex CLI. Requested keyword suggestions can send selected text and reference context, and chapter keyword extraction can send chapter text and known reference names, through the same desktop path. Visible personal information may remain. The Story Lens backend does not receive these desktop AI requests. The companion does not log prompts or output; provider processing follows your own provider account terms. Do not submit pages you are not allowed to share.
 
 ## Local storage and permissions
 
@@ -36,20 +36,23 @@ Extension-local storage and IndexedDB hold language, preferences, launcher posit
 - **Content scripts on HTTP(S) pages:** detect supported pages, highlight names, apply replacements, and display reading tools.
 - **API host access:** fetch and synchronize reference data and account operations.
 - **127.0.0.1 access:** connect to your paired local companion.
+- **Google Analytics host access:** send configured usage events unless disabled in the extension's General settings.
 
-The website saves only your theme choice in localStorage. Locale is represented in the URL. We do not run analytics or ad scripts or collect a separate list of your browsing history. API operations may include novel slugs, chapter metadata, and the page URL for requested selector detection. Ordinary server access logs can contain requested URLs.
+The extension's usage analytics is inactive unless the build includes Google Analytics credentials. When configured, it defaults to on and can be turned off at **Settings → General → Anonymous usage analytics**. Events can report installation or update, screens opened, requested AI actions, and detection of a supported novel page. That page event includes the reading site's hostname and whether a chapter was detected. Each event carries a randomly generated persistent analytics client ID, a session ID and the extension version. Events exclude page text, full URLs, novel and chapter titles, glossary content, prompts, email and account IDs. Google may receive standard network information such as an IP address. The client ID remains in extension-local storage until cleared or the extension is removed; Google's retention settings govern data it receives. Turning the switch off stops future events.
+
+The website saves only your theme choice in localStorage. Locale is represented in the URL. This website does not run analytics or ad scripts. The extension does not collect a full browsing history, though enabled analytics sends supported reading-site hostnames. API operations may include novel slugs, chapter metadata, and the page URL for requested selector detection. Ordinary server access logs can contain requested URLs.
 
 ## Hosting, logs, and third parties
 
 This site is served by Nginx on the operator’s server behind Cloudflare. Requests can reveal IP addresses, request time, paths, response status, browser information, and referrers to hosting and network services. Website Nginx access logs rotate daily with 14 rotations retained. Backend logs record method, status, path, and errors; error messages and stacks can contain diagnostic data. Backend application log retention has no verified fixed limit, so no automatic deletion deadline is promised.
 
-Processors and independent services include the infrastructure host, Cloudflare, ImgBB, OpenRouter, its model providers, and—in the summary path—your chosen Anthropic or OpenAI service. These services may process data internationally under their own policies. No single-country processing or specific transfer mechanism is promised here. We may disclose data when legally required or reasonably necessary to protect security and rights.
+Processors and independent services include the infrastructure host, Cloudflare, ImgBB, OpenRouter, its model providers, Google Analytics when configured and enabled in the extension, and—in the summary path—your chosen Anthropic or OpenAI service. These services may process data internationally under their own policies. No single-country processing or specific transfer mechanism is promised here. We may disclose data when legally required or reasonably necessary to protect security and rights.
 
-See [Cloudflare’s privacy policy](https://www.cloudflare.com/policies/privacy/), [ImgBB’s privacy policy](https://imgbb.com/privacy), [OpenRouter’s privacy policy](https://openrouter.ai/privacy), [Anthropic’s privacy policy](https://www.anthropic.com/legal/privacy), and [OpenAI’s privacy policy](https://openai.com/policies/privacy-policy/). External pages have their own terms.
+See [Cloudflare’s privacy policy](https://www.cloudflare.com/policies/privacy/), [ImgBB’s privacy policy](https://imgbb.com/privacy), [OpenRouter’s privacy policy](https://openrouter.ai/privacy), [Google’s privacy policy](https://policies.google.com/privacy), [Anthropic’s privacy policy](https://www.anthropic.com/legal/privacy), and [OpenAI’s privacy policy](https://openai.com/policies/privacy-policy/). External pages have their own terms.
 
 ## Purposes and legal bases
 
-We process account and reference data to provide the requested service, security and operational data to maintain and protect it, and optional AI content to fulfill the action you choose. Where GDPR or UK GDPR applies, the relevant bases may be performance of a contract, legitimate interests in operating a secure service, and consent where applicable to optional processing. You can avoid optional AI processing by not invoking it. We do not sell personal information or share it for targeted advertising. Story Lens does not use submitted page content to train its own models; upstream providers may have different practices.
+We process account and reference data to provide the requested service, security and operational data to maintain and protect it, optional usage events to measure and improve reading features, and optional AI content to fulfill the action you choose. Where GDPR or UK GDPR applies, the relevant bases may be performance of a contract, legitimate interests in operating a secure service, and consent where applicable to optional processing. You can disable extension analytics or avoid optional AI processing. We do not sell personal information or share it for targeted advertising. Story Lens does not use submitted page content to train its own models; upstream providers may have different practices.
 
 ## Retention and deletion
 
@@ -58,6 +61,7 @@ We process account and reference data to provide the requested service, security
 - **Images:** stored by ImgBB under its retention practices. Removing a reference in Story Lens does not guarantee removal of every third-party copy.
 - **AI page content:** processed for the request. The chapter-detection route does not persist raw HTML, and the companion does not log summaries. Upstream retention is governed by provider policies and account settings.
 - **Device data:** retained until cleared. Uninstalling does not delete server accounts or necessarily remove desktop settings files.
+- **Extension usage analytics:** the client ID stays in extension-local storage until cleared or uninstalled; Google processes received events under its own retention settings. Turning analytics off stops future events.
 - **Website access logs:** daily rotation with 14 retained rotations; exceptional legal or incident preservation may apply.
 
 Backups and security records may take longer to remove. We do not claim an unverified fixed database or backup deletion period.
@@ -66,7 +70,7 @@ Backups and security records may take longer to remove. We do not claim an unver
 
 Passwords are hashed. Public endpoints use HTTPS. The desktop service binds to loopback, requires a pairing token, validates origin and host, and limits request size and concurrency. These safeguards reduce risk but cannot guarantee perfect security.
 
-Subject to applicable law, you may request access, correction, export, deletion, restriction, objection, or withdrawal of consent, and complain to your competent data-protection authority. We may verify your identity and need to preserve lawful records. We aim to respond within 30 days, subject to lawful extensions. California residents may have applicable access and deletion rights; we do not sell or share personal data for cross-context behavioral advertising. You can edit available profile fields, stop using AI features, clear local data, or uninstall. Do not include sensitive information in a public support issue.
+Subject to applicable law, you may request access, correction, export, deletion, restriction, objection, or withdrawal of consent, and complain to your competent data-protection authority. We may verify your identity and need to preserve lawful records. We aim to respond within 30 days, subject to lawful extensions. California residents may have applicable access and deletion rights; we do not sell or share personal data for cross-context behavioral advertising. You can edit available profile fields, turn off extension analytics, stop using AI features, clear local data, or uninstall. Do not include sensitive information in a public support issue.
 
 ## Children and store disclosures
 
@@ -76,4 +80,4 @@ Extension data is used to provide and secure Story Lens’s reading tools, accou
 
 ## Changes and language
 
-We update this page when data handling changes. The date and version identify the current notice; material changes may also be announced through release notes. English controls if the Arabic translation differs, subject to mandatory local law. Version 1.0.0 is the initial policy.
+We update this page when data handling changes. The date and version identify the current notice; material changes may also be announced through release notes. English controls if the Arabic translation differs, subject to mandatory local law. Version 1.0.1 clarifies the extension's optional Google Analytics events.
