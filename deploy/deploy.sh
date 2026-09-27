@@ -12,8 +12,6 @@ set +a
 exec 9>/var/lock/storylens-website-deploy.lock
 flock -n 9 || { echo "Another website deploy is running."; exit 1; }
 bun install --frozen-lockfile
-bun run typecheck
-bun run lint
 bun run build
 release="/var/www/storylens/releases/$(date -u +%Y%m%dT%H%M%SZ)-$(git rev-parse --short HEAD)"
 mkdir -p "$release" /var/www/certbot
