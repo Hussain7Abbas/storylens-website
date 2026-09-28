@@ -12,6 +12,8 @@ import {
 import { getMessages, type Messages } from "@/i18n/messages";
 import {
 	AccountApiError,
+	type CodeChallenge,
+	changeEmail,
 	changePassword,
 	completeOAuth,
 	getProviders,
@@ -20,6 +22,8 @@ import {
 	register,
 	startGoogleSignIn,
 	updateProfile,
+	verifyEmailChange,
+	verifyPasswordChange,
 	verifyRegistration,
 } from "@/lib/account/api";
 import {
@@ -35,6 +39,7 @@ export type AccountView =
 	| "login"
 	| "register"
 	| "password"
+	| "email"
 	| "oauth";
 type Copy = Messages["account"];
 type Bridge =
@@ -106,6 +111,7 @@ export function AccountApp({
 		login: copy.loginTitle,
 		register: copy.registerTitle,
 		password: copy.passwordTitle,
+		email: copy.emailTitle,
 		oauth: copy.oauthTitle,
 	};
 
@@ -167,18 +173,33 @@ export function AccountApp({
 					/>
 				</>
 			);
-		} else if (view === "password") {
+		} else if (view === "password" || view === "email") {
 			content = member ? (
-				<PasswordForm
-					copy={copy}
-					locale={locale}
-					base={base}
-					session={member}
-					onNotice={setNotice}
-				/>
+				view === "password" ? (
+					<PasswordForm
+						copy={copy}
+						locale={locale}
+						base={base}
+						session={member}
+						onNotice={setNotice}
+					/>
+				) : (
+					<EmailForm
+						copy={copy}
+						locale={locale}
+						base={base}
+						session={member}
+						onNotice={setNotice}
+						onSaved={saveSession}
+					/>
+				)
 			) : (
 				<>
-					<p>{copy.signInRequired}</p>
+					<p>
+						{view === "password"
+							? copy.signInRequired
+							: copy.emailSignInRequired}
+					</p>
 					<div className="actions">
 						<a className="button" href={`${base}login/`}>
 							{copy.login}
@@ -523,18 +544,23 @@ function RegisterForm({
 
 	if (pending) {
 		return (
-			<VerifyEmailForm
+			<CodeForm
 				copy={copy}
-				locale={locale}
 				email={pending.email}
-				guest={guest}
 				resendAt={resendAt}
+				verifyLabel={copy.verify}
+				backLabel={copy.changeEmail}
 				onResend={() => requestCode(pending)}
-				onChangeEmail={() => {
+				onBack={() => {
 					setDraft(pending);
 					setPending(null);
 				}}
-				onSuccess={async (session) => {
+				onVerify={async (code) => {
+					const session = await verifyRegistration(
+						locale,
+						{ email: pending.email, code },
+						guest?.token,
+					);
 					trackEvent("sign_up", { method: guest ? "guest_upgrade" : "email" });
 					await onSuccess(session);
 				}}
@@ -595,24 +621,25 @@ function RegisterForm({
 	);
 }
 
-function VerifyEmailForm({
+// Shared second step for emailed codes: registration, password, and email.
+function CodeForm({
 	copy,
-	locale,
 	email,
-	guest,
 	resendAt,
+	verifyLabel,
+	backLabel,
 	onResend,
-	onChangeEmail,
-	onSuccess,
+	onBack,
+	onVerify,
 }: {
 	copy: Copy;
-	locale: Locale;
 	email: string;
-	guest: AccountSession | null;
 	resendAt: number;
+	verifyLabel: string;
+	backLabel: string;
 	onResend: () => Promise<void>;
-	onChangeEmail: () => void;
-	onSuccess: (session: AccountSession) => Promise<void>;
+	onBack: () => void;
+	onVerify: (code: string) => Promise<void>;
 }) {
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
@@ -633,12 +660,7 @@ function VerifyEmailForm({
 		setError("");
 		setStatus("");
 		try {
-			const session = await verifyRegistration(
-				locale,
-				{ email, code: field(form, "one-time-code").trim() },
-				guest?.token,
-			);
-			await onSuccess(session);
+			await onVerify(field(form, "one-time-code").trim());
 		} catch (caught) {
 			setError(errorText(caught, copy.requestFailed));
 		} finally {
@@ -693,9 +715,9 @@ function VerifyEmailForm({
 					type="submit"
 					className="button"
 					disabled={busy}
-					title={copy.verify}
+					title={verifyLabel}
 				>
-					{copy.verify}
+					{verifyLabel}
 				</button>
 				<button
 					type="button"
@@ -711,15 +733,17 @@ function VerifyEmailForm({
 				<button
 					type="button"
 					className="text-link"
-					onClick={onChangeEmail}
-					title={copy.changeEmail}
+					onClick={onBack}
+					title={backLabel}
 				>
-					{copy.changeEmail}
+					{backLabel}
 				</button>
 			</p>
 		</form>
 	);
 }
+
+type PasswordChange = { currentPassword: string; newPassword: string };
 
 function PasswordForm({
 	copy,
@@ -736,10 +760,21 @@ function PasswordForm({
 }) {
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
+	// Held in memory only, so a resend can repeat the same request.
+	const [pending, setPending] = useState<PasswordChange | null>(null);
+	const [challenge, setChallenge] = useState<CodeChallenge | null>(null);
+	const [resendAt, setResendAt] = useState(0);
+
+	async function requestCode(values: PasswordChange) {
+		const next = await changePassword(locale, session.token, values);
+		setPending(values);
+		setChallenge(next);
+		setResendAt(Date.now() + next.resendAfterSeconds * 1000);
+	}
+
 	async function submit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
-		const target = event.currentTarget;
-		const form = new FormData(target);
+		const form = new FormData(event.currentTarget);
 		const newPassword = field(form, "new-password");
 		if (newPassword !== field(form, "confirm-password")) {
 			setError(copy.passwordMismatch);
@@ -747,19 +782,42 @@ function PasswordForm({
 		}
 		setBusy(true);
 		setError("");
+		onNotice(null);
 		try {
-			await changePassword(locale, session.token, {
+			await requestCode({
 				currentPassword: field(form, "current-password"),
 				newPassword,
 			});
-			target.reset();
-			onNotice({ tone: "success", text: copy.passwordChanged });
 		} catch (caught) {
 			setError(errorText(caught, copy.requestFailed));
 		} finally {
 			setBusy(false);
 		}
 	}
+
+	if (pending && challenge) {
+		return (
+			<CodeForm
+				copy={copy}
+				email={challenge.email}
+				resendAt={resendAt}
+				verifyLabel={copy.confirmCode}
+				backLabel={copy.startOver}
+				onResend={() => requestCode(pending)}
+				onBack={() => {
+					setPending(null);
+					setChallenge(null);
+				}}
+				onVerify={async (code) => {
+					await verifyPasswordChange(locale, session.token, { code });
+					setPending(null);
+					setChallenge(null);
+					onNotice({ tone: "success", text: copy.passwordChanged });
+				}}
+			/>
+		);
+	}
+
 	return (
 		<form className="account-form" method="post" onSubmit={submit}>
 			{/* Lets password managers attach the new password to this account. */}
@@ -803,9 +861,115 @@ function PasswordForm({
 					type="submit"
 					className="button"
 					disabled={busy}
-					title={copy.save}
+					title={copy.sendCode}
 				>
-					{copy.save}
+					{copy.sendCode}
+				</button>
+				<a className="text-link" href={base}>
+					{copy.cancel}
+				</a>
+			</div>
+		</form>
+	);
+}
+
+function EmailForm({
+	copy,
+	locale,
+	base,
+	session,
+	onNotice,
+	onSaved,
+}: {
+	copy: Copy;
+	locale: Locale;
+	base: string;
+	session: AccountSession;
+	onNotice: (notice: Notice) => void;
+	onSaved: (session: AccountSession | null) => Promise<boolean>;
+}) {
+	const [busy, setBusy] = useState(false);
+	const [error, setError] = useState("");
+	const [pending, setPending] = useState<string | null>(null);
+	// Refills the field when the reader goes back to fix the address.
+	const [draft, setDraft] = useState("");
+	const [resendAt, setResendAt] = useState(0);
+
+	async function requestCode(email: string) {
+		const challenge = await changeEmail(locale, session.token, { email });
+		setPending(challenge.email);
+		setResendAt(Date.now() + challenge.resendAfterSeconds * 1000);
+	}
+
+	async function submit(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		const form = new FormData(event.currentTarget);
+		setBusy(true);
+		setError("");
+		onNotice(null);
+		try {
+			await requestCode(field(form, "email").trim());
+		} catch (caught) {
+			setError(errorText(caught, copy.requestFailed));
+		} finally {
+			setBusy(false);
+		}
+	}
+
+	if (pending) {
+		return (
+			<CodeForm
+				copy={copy}
+				email={pending}
+				resendAt={resendAt}
+				verifyLabel={copy.confirmCode}
+				backLabel={copy.changeEmail}
+				onResend={() => requestCode(pending)}
+				onBack={() => {
+					setDraft(pending);
+					setPending(null);
+				}}
+				onVerify={async (code) => {
+					const user = await verifyEmailChange(locale, session.token, {
+						code,
+					});
+					if (await onSaved({ user, token: session.token })) {
+						setDraft("");
+						setPending(null);
+						onNotice({ tone: "success", text: copy.emailChanged });
+					}
+				}}
+			/>
+		);
+	}
+
+	return (
+		<form className="account-form" method="post" onSubmit={submit}>
+			<dl className="account-details">
+				<div>
+					<dt>{copy.currentEmail}</dt>
+					<dd dir="ltr">{session.user.email}</dd>
+				</div>
+			</dl>
+			<TextField
+				label={copy.newEmail}
+				hint={copy.newEmailHint}
+				type="email"
+				name="email"
+				autoComplete="email"
+				defaultValue={draft}
+				dir="ltr"
+				required
+			/>
+			<FormError text={error} />
+			<div className="actions">
+				<button
+					type="submit"
+					className="button"
+					disabled={busy}
+					title={copy.sendCode}
+				>
+					{copy.sendCode}
 				</button>
 				<a className="text-link" href={base}>
 					{copy.cancel}
@@ -913,13 +1077,6 @@ function Profile({
 					maxLength={100}
 					required
 				/>
-				<TextField
-					label={copy.email}
-					type="email"
-					value={user.email}
-					readOnly
-					disabled
-				/>
 				<FormError text={error} />
 				<div className="actions">
 					<button
@@ -978,6 +1135,9 @@ function Profile({
 				>
 					{copy.edit}
 				</button>
+				<a className="text-link" href={`${base}email/`}>
+					{copy.changeEmailLink}
+				</a>
 				<a className="text-link" href={`${base}password/`}>
 					{copy.changePassword}
 				</a>

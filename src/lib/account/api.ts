@@ -67,7 +67,8 @@ export interface RegistrationValues {
 	username: string;
 	name?: string;
 }
-export interface RegistrationChallenge {
+/** Where a verification code went, and when another may be requested. */
+export interface CodeChallenge {
 	email: string;
 	expiresAt: string;
 	resendAfterSeconds: number;
@@ -78,7 +79,7 @@ export function register(
 	locale: Locale,
 	values: RegistrationValues,
 	guestToken?: string,
-): Promise<RegistrationChallenge> {
+): Promise<CodeChallenge> {
 	return call("/auth/register", {
 		locale,
 		token: guestToken,
@@ -109,12 +110,55 @@ export function updateProfile(
 	return call("/auth/me", { locale, token, method: "PUT", body: values });
 }
 
+/** Checks the current password and emails a code to the account address. */
 export function changePassword(
 	locale: Locale,
 	token: string,
 	values: { currentPassword: string; newPassword: string },
-): Promise<{ success: boolean }> {
+): Promise<CodeChallenge> {
 	return call("/auth/change-password", {
+		locale,
+		token,
+		method: "POST",
+		body: values,
+	});
+}
+
+/** Applies the new password once the emailed code matches. */
+export function verifyPasswordChange(
+	locale: Locale,
+	token: string,
+	values: { code: string },
+): Promise<{ success: boolean }> {
+	return call("/auth/change-password/verify", {
+		locale,
+		token,
+		method: "POST",
+		body: values,
+	});
+}
+
+/** Emails a code to the new address; also resends it. */
+export function changeEmail(
+	locale: Locale,
+	token: string,
+	values: { email: string },
+): Promise<CodeChallenge> {
+	return call("/auth/change-email", {
+		locale,
+		token,
+		method: "POST",
+		body: values,
+	});
+}
+
+/** Moves the account to the new address once the emailed code matches. */
+export function verifyEmailChange(
+	locale: Locale,
+	token: string,
+	values: { code: string },
+): Promise<AccountUser> {
+	return call("/auth/change-email/verify", {
 		locale,
 		token,
 		method: "POST",

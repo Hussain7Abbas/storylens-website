@@ -94,6 +94,7 @@ for (const locale of ["en", "ar"] as const) {
 			"profile/",
 			"profile/login/",
 			"profile/register/",
+			"profile/email/",
 			"profile/oauth/?error=access_denied",
 		])
 			test(`${locale}/${route}: accessibility ${theme}`, async ({ page }) => {
@@ -251,6 +252,107 @@ test("changing the email returns to a prefilled registration form", async ({
 		"reader@example.com",
 	);
 	await expect(page.getByLabel("اسم المستخدم")).toHaveValue("QuietOwl42");
+});
+
+test("password changes are confirmed with a code sent to the account email", async ({
+	page,
+}) => {
+	await installFakeExtension(page, member);
+	let requestBody: unknown;
+	let verifyBody: unknown;
+	const authorizations: (string | undefined)[] = [];
+	await page.route("**/auth/change-password", async (route) => {
+		requestBody = route.request().postDataJSON();
+		authorizations.push(route.request().headers().authorization);
+		await route.fulfill({
+			json: {
+				email: "reader@example.com",
+				expiresAt: new Date(Date.now() + 600_000).toISOString(),
+				resendAfterSeconds: 60,
+			},
+		});
+	});
+	await page.route("**/auth/change-password/verify", async (route) => {
+		verifyBody = route.request().postDataJSON();
+		authorizations.push(route.request().headers().authorization);
+		await route.fulfill({ json: { success: true } });
+	});
+	await page.goto("/en/profile/password/");
+	await page.getByLabel("Current password").fill("old-password");
+	await page.getByLabel("New password", { exact: true }).fill("new-password");
+	await page.getByLabel("Confirm new password").fill("new-password");
+	await page.getByRole("button", { name: "Send code" }).click();
+
+	await expect(page.getByText("reader@example.com")).toBeVisible();
+	expect(requestBody).toEqual({
+		currentPassword: "old-password",
+		newPassword: "new-password",
+	});
+	await page.getByLabel("Verification code").fill("123456");
+	await page.getByRole("button", { name: "Confirm" }).click();
+	await expect(page.locator(".account-notice")).toHaveText(
+		"Your password was changed.",
+	);
+	expect(verifyBody).toEqual({ code: "123456" });
+	expect(authorizations).toEqual(Array(2).fill("Bearer member-token"));
+	await expect(page.getByLabel("Current password")).toHaveValue("");
+});
+
+test("profile editing leaves the email to a separate verified change", async ({
+	page,
+}) => {
+	await installFakeExtension(page, member);
+	let requestBody: unknown;
+	await page.route("**/auth/change-email", async (route) => {
+		requestBody = route.request().postDataJSON();
+		await route.fulfill({
+			json: {
+				email: "new@example.com",
+				expiresAt: new Date(Date.now() + 600_000).toISOString(),
+				resendAfterSeconds: 60,
+			},
+		});
+	});
+	await page.route("**/auth/change-email/verify", async (route) => {
+		const { code } = route.request().postDataJSON();
+		await route.fulfill(
+			code === "123456"
+				? { json: { ...member.user, email: "new@example.com" } }
+				: {
+						status: 400,
+						json: { message: "Incorrect code. 4 attempts left." },
+					},
+		);
+	});
+	await page.goto("/en/profile/");
+	await page.getByRole("button", { name: "Edit profile" }).click();
+	await expect(page.getByLabel("Username")).toBeVisible();
+	await expect(page.getByLabel("Email")).toHaveCount(0);
+	await page.getByRole("button", { name: "Cancel" }).click();
+
+	await page.getByRole("link", { name: "Change email" }).click();
+	await expect(page).toHaveURL(/\/en\/profile\/email\/$/);
+	await page.getByLabel("New email").fill("new@example.com");
+	await page.getByRole("button", { name: "Send code" }).click();
+	expect(requestBody).toEqual({ email: "new@example.com" });
+
+	const code = page.getByLabel("Verification code");
+	await code.fill("000000");
+	await page.getByRole("button", { name: "Confirm" }).click();
+	await expect(page.locator(".account-error")).toHaveText(
+		"Incorrect code. 4 attempts left.",
+	);
+	expect(await storedSession(page)).toEqual(member);
+
+	await code.fill("123456");
+	await page.getByRole("button", { name: "Confirm" }).click();
+	await expect(page.locator(".account-notice")).toHaveText(
+		"Your email was changed.",
+	);
+	expect(await storedSession(page)).toEqual({
+		...member,
+		user: { ...member.user, email: "new@example.com" },
+	});
 });
 
 test("signing out clears the extension session", async ({ page }) => {

@@ -221,7 +221,17 @@
 		"resendCode": "Resend code",
 		"resendIn": "Resend code in {seconds}s",
 		"codeResent": "A new code is on its way.",
-		"changeEmail": "Use a different email"
+		"changeEmail": "Use a different email",
+		"emailTitle": "Change email",
+		"changeEmailLink": "Change email",
+		"currentEmail": "Current email",
+		"newEmail": "New email",
+		"newEmailHint": "We’ll send a 6-digit code to this address to confirm it.",
+		"emailSignInRequired": "Sign in with an account to change its email.",
+		"emailChanged": "Your email was changed.",
+		"sendCode": "Send code",
+		"confirmCode": "Confirm",
+		"startOver": "Start over"
 	},
 	"screenshots": {
 		"eyebrow": "INSIDE THE EXTENSION",

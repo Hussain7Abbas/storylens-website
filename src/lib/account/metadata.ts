@@ -7,6 +7,7 @@ const titles = {
 	"login/": "loginTitle",
 	"register/": "registerTitle",
 	"password/": "passwordTitle",
+	"email/": "emailTitle",
 	"oauth/": "oauthTitle",
 } as const;
 
