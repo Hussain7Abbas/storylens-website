@@ -4,13 +4,20 @@
 export const ACCOUNT_BRIDGE_CHANNEL = "storylens-account";
 const BRIDGE_TIMEOUT_MS = 1500;
 
-export type AccountRole = "guest" | "user" | "admin";
+export interface AccountRole {
+	id: string;
+	slug: string;
+	name: string;
+}
 export interface AccountUser {
 	id: string;
 	email: string;
 	username: string;
 	name: string;
-	role: AccountRole;
+	isGuest: boolean;
+	role: AccountRole | null;
+	/** Permission keys the API granted, e.g. `POST /api/user/keywords/`. */
+	permissions: string[];
 }
 export interface AccountSession {
 	user: AccountUser;
@@ -30,6 +37,54 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null;
 }
 
+// Extension builds before role permissions stored `role: "guest" | "user" | "admin"`.
+const LEGACY_ROLES: Record<string, AccountRole> = {
+	guest: { id: "", slug: "guest", name: "Guest" },
+	user: { id: "", slug: "reader", name: "Reader" },
+	admin: { id: "", slug: "moderator", name: "Moderator" },
+};
+
+/** Accepts an API or extension user, current or legacy; null otherwise. */
+export function normalizeAccountUser(value: unknown): AccountUser | null {
+	if (
+		!isRecord(value) ||
+		typeof value.id !== "string" ||
+		typeof value.email !== "string" ||
+		typeof value.username !== "string" ||
+		typeof value.name !== "string"
+	) {
+		return null;
+	}
+	const base = {
+		id: value.id,
+		email: value.email,
+		username: value.username,
+		name: value.name,
+	};
+	if (typeof value.role === "string") {
+		const role = LEGACY_ROLES[value.role];
+		if (!role) return null;
+		return { ...base, isGuest: value.role === "guest", role, permissions: [] };
+	}
+	const role =
+		isRecord(value.role) &&
+		typeof value.role.id === "string" &&
+		typeof value.role.slug === "string" &&
+		typeof value.role.name === "string"
+			? { id: value.role.id, slug: value.role.slug, name: value.role.name }
+			: null;
+	return {
+		...base,
+		isGuest: value.isGuest === true,
+		role,
+		permissions: Array.isArray(value.permissions)
+			? value.permissions.filter(
+					(key): key is string => typeof key === "string",
+				)
+			: [],
+	};
+}
+
 function readExtensionMessage(event: MessageEvent): ExtensionMessage | null {
 	if (event.source !== window || event.origin !== window.location.origin) {
 		return null;
@@ -43,12 +98,16 @@ function readExtensionMessage(event: MessageEvent): ExtensionMessage | null {
 	) {
 		return null;
 	}
-	const session = isRecord(data.session)
-		? (data.session as unknown as AccountSession)
+	const user = isRecord(data.session)
+		? normalizeAccountUser(data.session.user)
 		: null;
+	const token =
+		isRecord(data.session) && typeof data.session.token === "string"
+			? data.session.token
+			: "";
 	return {
 		id: typeof data.id === "string" ? data.id : undefined,
-		session: session?.token && session.user ? session : null,
+		session: user && token ? { user, token } : null,
 	};
 }
 

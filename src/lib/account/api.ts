@@ -11,6 +11,8 @@ export class AccountApiError extends Error {
 	}
 }
 
+// Reader-account endpoints live under `/api/user/auth`; Better Auth's OAuth
+// routes (`/auth/sign-in/social`, callbacks) stay at `/auth`.
 async function call<T>(
 	path: string,
 	{
@@ -58,7 +60,7 @@ export function login(
 	locale: Locale,
 	values: { email: string; password: string },
 ): Promise<AccountSession> {
-	return call("/auth/login", { locale, method: "POST", body: values });
+	return call("/api/user/auth/login", { locale, method: "POST", body: values });
 }
 
 export interface RegistrationValues {
@@ -80,7 +82,7 @@ export function register(
 	values: RegistrationValues,
 	guestToken?: string,
 ): Promise<CodeChallenge> {
-	return call("/auth/register", {
+	return call("/api/user/auth/register", {
 		locale,
 		token: guestToken,
 		method: "POST",
@@ -94,7 +96,7 @@ export function verifyRegistration(
 	values: { email: string; code: string },
 	guestToken?: string,
 ): Promise<AccountSession> {
-	return call("/auth/register/verify", {
+	return call("/api/user/auth/register/verify", {
 		locale,
 		token: guestToken,
 		method: "POST",
@@ -107,7 +109,12 @@ export function updateProfile(
 	token: string,
 	values: { username: string; name: string },
 ): Promise<AccountUser> {
-	return call("/auth/me", { locale, token, method: "PUT", body: values });
+	return call("/api/user/auth/me", {
+		locale,
+		token,
+		method: "PUT",
+		body: values,
+	});
 }
 
 /** Checks the current password and emails a code to the account address. */
@@ -116,7 +123,7 @@ export function changePassword(
 	token: string,
 	values: { currentPassword: string; newPassword: string },
 ): Promise<CodeChallenge> {
-	return call("/auth/change-password", {
+	return call("/api/user/auth/change-password", {
 		locale,
 		token,
 		method: "POST",
@@ -130,7 +137,7 @@ export function verifyPasswordChange(
 	token: string,
 	values: { code: string },
 ): Promise<{ success: boolean }> {
-	return call("/auth/change-password/verify", {
+	return call("/api/user/auth/change-password/verify", {
 		locale,
 		token,
 		method: "POST",
@@ -144,7 +151,7 @@ export function changeEmail(
 	token: string,
 	values: { email: string },
 ): Promise<CodeChallenge> {
-	return call("/auth/change-email", {
+	return call("/api/user/auth/change-email", {
 		locale,
 		token,
 		method: "POST",
@@ -158,7 +165,7 @@ export function verifyEmailChange(
 	token: string,
 	values: { code: string },
 ): Promise<AccountUser> {
-	return call("/auth/change-email/verify", {
+	return call("/api/user/auth/change-email/verify", {
 		locale,
 		token,
 		method: "POST",
@@ -167,7 +174,7 @@ export function verifyEmailChange(
 }
 
 export function getProviders(locale: Locale): Promise<{ google: boolean }> {
-	return call("/auth/providers", { locale });
+	return call("/api/user/auth/providers", { locale });
 }
 
 /** Starts Google sign-in; resolves with the Google URL to navigate to. */
@@ -192,7 +199,7 @@ export function completeOAuth(
 	locale: Locale,
 	guestToken?: string,
 ): Promise<AccountSession> {
-	return call("/auth/oauth/session", {
+	return call("/api/user/auth/oauth/session", {
 		locale,
 		method: "POST",
 		body: guestToken ? { guestToken } : {},

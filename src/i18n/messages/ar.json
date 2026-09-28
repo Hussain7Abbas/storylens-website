@@ -177,8 +177,8 @@
 		"role": "الدور",
 		"roles": {
 			"guest": "زائر",
-			"user": "عضو",
-			"admin": "مشرف"
+			"reader": "عضو",
+			"moderator": "مشرف"
 		},
 		"password": "كلمة المرور",
 		"currentPassword": "كلمة المرور الحالية",

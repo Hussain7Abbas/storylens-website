@@ -188,8 +188,8 @@
 		"role": "Role",
 		"roles": {
 			"guest": "Guest",
-			"user": "Member",
-			"admin": "Administrator"
+			"reader": "Member",
+			"moderator": "Moderator"
 		},
 		"password": "Password",
 		"currentPassword": "Current password",

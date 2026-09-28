@@ -7,7 +7,9 @@ type Session = {
 		email: string;
 		username: string;
 		name: string;
-		role: "guest" | "user" | "admin";
+		isGuest: boolean;
+		role: { id: string; slug: string; name: string } | null;
+		permissions: string[];
 	};
 	token: string;
 } | null;
@@ -18,7 +20,9 @@ const guest: Session = {
 		email: "reader@guest.storylens.local",
 		username: "QuietOwl42",
 		name: "QuietOwl42",
-		role: "guest",
+		isGuest: true,
+		role: { id: "role-guest", slug: "guest", name: "Guest" },
+		permissions: ["GET /api/user/auth/me"],
 	},
 	token: "guest-token",
 };
@@ -28,7 +32,9 @@ const member: NonNullable<Session> = {
 		email: "reader@example.com",
 		username: "QuietOwl42",
 		name: "Reader",
-		role: "user",
+		isGuest: false,
+		role: { id: "role-reader", slug: "reader", name: "Reader" },
+		permissions: ["GET /api/user/auth/me", "POST /api/user/keywords/"],
 	},
 	token: "member-token",
 };

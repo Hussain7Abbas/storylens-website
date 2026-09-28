@@ -28,6 +28,7 @@ import {
 } from "@/lib/account/api";
 import {
 	type AccountSession,
+	type AccountUser,
 	requestSession,
 	subscribeSession,
 } from "@/lib/account/bridge";
@@ -42,6 +43,13 @@ export type AccountView =
 	| "email"
 	| "oauth";
 type Copy = Messages["account"];
+
+/** Localized name of a system role; custom roles show their own name. */
+function roleLabel(roles: Copy["roles"], user: AccountUser): string {
+	const slug = user.isGuest ? "guest" : user.role?.slug;
+	if (slug && slug in roles) return roles[slug as keyof Copy["roles"]];
+	return user.role?.name ?? roles.reader;
+}
 type Bridge =
 	| { status: "detecting" }
 	| { status: "missing" }
@@ -126,7 +134,7 @@ export function AccountApp({
 		content = <MissingExtension copy={copy} />;
 	} else {
 		const { session } = bridge;
-		const member = session && session.user.role !== "guest" ? session : null;
+		const member = session && !session.user.isGuest ? session : null;
 		const goToProfile = () => window.location.assign(base);
 		if (view === "oauth") {
 			content = (
@@ -134,7 +142,7 @@ export function AccountApp({
 					copy={copy}
 					locale={locale}
 					base={base}
-					guest={session?.user.role === "guest" ? session : null}
+					guest={session?.user.isGuest ? session : null}
 					onSuccess={async (next) => {
 						if (await saveSession(next)) window.location.replace(base);
 					}}
@@ -998,7 +1006,7 @@ function Profile({
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
 
-	if (!session || session.user.role === "guest") {
+	if (!session || session.user.isGuest) {
 		return (
 			<>
 				{session && (
@@ -1120,7 +1128,7 @@ function Profile({
 				</div>
 				<div>
 					<dt>{copy.role}</dt>
-					<dd>{copy.roles[user.role]}</dd>
+					<dd>{roleLabel(copy.roles, user)}</dd>
 				</div>
 			</dl>
 			<div className="actions">
