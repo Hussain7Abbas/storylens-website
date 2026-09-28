@@ -61,13 +61,39 @@ export function login(
 	return call("/auth/login", { locale, method: "POST", body: values });
 }
 
-/** Registers a new account, upgrading the guest when its token is supplied. */
+export interface RegistrationValues {
+	email: string;
+	password: string;
+	username: string;
+	name?: string;
+}
+export interface RegistrationChallenge {
+	email: string;
+	expiresAt: string;
+	resendAfterSeconds: number;
+}
+
+/** Checks the details and emails a verification code; also resends it. */
 export function register(
 	locale: Locale,
-	values: { email: string; password: string; username: string; name?: string },
+	values: RegistrationValues,
+	guestToken?: string,
+): Promise<RegistrationChallenge> {
+	return call("/auth/register", {
+		locale,
+		token: guestToken,
+		method: "POST",
+		body: values,
+	});
+}
+
+/** Confirms the emailed code; a guest token upgrades that guest in place. */
+export function verifyRegistration(
+	locale: Locale,
+	values: { email: string; code: string },
 	guestToken?: string,
 ): Promise<AccountSession> {
-	return call("/auth/register", {
+	return call("/auth/register/verify", {
 		locale,
 		token: guestToken,
 		method: "POST",

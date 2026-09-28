@@ -213,7 +213,15 @@
 		"oauthTitle": "Signing you in",
 		"oauthWorking": "Finishing sign-in…",
 		"oauthFailed": "Sign-in with Google didn’t complete. Please try again.",
-		"tryAgain": "Back to sign in"
+		"tryAgain": "Back to sign in",
+		"verificationCode": "Verification code",
+		"codeSent": "We sent a 6-digit code to",
+		"codeHint": "Check your inbox and spam folder. The code expires in 10 minutes.",
+		"verify": "Verify email",
+		"resendCode": "Resend code",
+		"resendIn": "Resend code in {seconds}s",
+		"codeResent": "A new code is on its way.",
+		"changeEmail": "Use a different email"
 	},
 	"screenshots": {
 		"eyebrow": "INSIDE THE EXTENSION",

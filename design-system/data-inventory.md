@@ -4,7 +4,7 @@ Source snapshots: backend `6a800550c57c3e022aebf40633adeb4337edc9da`, extension 
 
 | Data / behavior | Evidence | Policy limit |
 | --- | --- | --- |
-| User email/name/username/hash/role/verification | backend prisma/schema.prisma; src/routes/accounts.ts | Guest gets synthetic email; registered account supplies email |
+| User email/name/username/hash/role/verification | backend prisma/schema.prisma; src/routes/accounts.ts | Guest gets synthetic email; registered account supplies email. Registration stores a pending row (email, username, name, password hash, HMAC of the code) in the verification table for up to 10 minutes and sends the email address and code to Resend. Privacy policy not yet updated to name Resend; owner review required |
 | Session token/expiry; optional IP/user agent fields | schema; src/lib/auth/session.ts; src/lib/auth/index.ts | Schema supports metadata; no blanket statement every custom login populates it; no immediate expiry cleanup promise |
 | Shared reference catalogue | novels/keywords/replacements routes and middleware/authorize.ts | Authenticated reads, role-limited writes; not private |
 | Images and URL metadata | storage/helpers.ts and routes/files.ts | ImgBB upload; no verified guarantee that removing DB reference erases third-party copy |

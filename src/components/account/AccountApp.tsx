@@ -16,9 +16,11 @@ import {
 	completeOAuth,
 	getProviders,
 	login,
+	type RegistrationValues,
 	register,
 	startGoogleSignIn,
 	updateProfile,
+	verifyRegistration,
 } from "@/lib/account/api";
 import {
 	type AccountSession,
@@ -486,6 +488,19 @@ function RegisterForm({
 }) {
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
+	// Held in memory only, so a resend can repeat the same request.
+	const [pending, setPending] = useState<RegistrationValues | null>(null);
+	// Refills the form when the reader goes back to change the email.
+	const [draft, setDraft] = useState<RegistrationValues | null>(null);
+	const [resendAt, setResendAt] = useState(0);
+
+	// A guest token upgrades the guest in place, keeping its data.
+	async function requestCode(values: RegistrationValues) {
+		const challenge = await register(locale, values, guest?.token);
+		setPending({ ...values, email: challenge.email });
+		setResendAt(Date.now() + challenge.resendAfterSeconds * 1000);
+	}
+
 	async function submit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		const form = new FormData(event.currentTarget);
@@ -493,25 +508,40 @@ function RegisterForm({
 		setBusy(true);
 		setError("");
 		try {
-			// A guest token upgrades the guest in place, keeping its data.
-			const session = await register(
-				locale,
-				{
-					email: field(form, "email").trim(),
-					username: field(form, "username").trim(),
-					password: field(form, "new-password"),
-					...(name ? { name } : {}),
-				},
-				guest?.token,
-			);
-			trackEvent("sign_up", { method: guest ? "guest_upgrade" : "email" });
-			await onSuccess(session);
+			await requestCode({
+				email: field(form, "email").trim(),
+				username: field(form, "username").trim(),
+				password: field(form, "new-password"),
+				...(name ? { name } : {}),
+			});
 		} catch (caught) {
 			setError(errorText(caught, copy.requestFailed));
 		} finally {
 			setBusy(false);
 		}
 	}
+
+	if (pending) {
+		return (
+			<VerifyEmailForm
+				copy={copy}
+				locale={locale}
+				email={pending.email}
+				guest={guest}
+				resendAt={resendAt}
+				onResend={() => requestCode(pending)}
+				onChangeEmail={() => {
+					setDraft(pending);
+					setPending(null);
+				}}
+				onSuccess={async (session) => {
+					trackEvent("sign_up", { method: guest ? "guest_upgrade" : "email" });
+					await onSuccess(session);
+				}}
+			/>
+		);
+	}
+
 	return (
 		<form className="account-form" method="post" onSubmit={submit}>
 			<TextField
@@ -519,6 +549,7 @@ function RegisterForm({
 				type="email"
 				name="email"
 				autoComplete="username"
+				defaultValue={draft?.email}
 				required
 			/>
 			<TextField
@@ -526,7 +557,7 @@ function RegisterForm({
 				hint={copy.usernameHint}
 				name="username"
 				autoComplete="nickname"
-				defaultValue={guest?.user.username}
+				defaultValue={draft?.username ?? guest?.user.username}
 				minLength={3}
 				maxLength={30}
 				required
@@ -535,6 +566,7 @@ function RegisterForm({
 				label={copy.name}
 				name="name"
 				autoComplete="name"
+				defaultValue={draft?.name}
 				maxLength={100}
 			/>
 			<TextField
@@ -558,6 +590,132 @@ function RegisterForm({
 			</button>
 			<p className="account-switch">
 				{copy.haveAccount} <a href={`${base}login/`}>{copy.login}</a>
+			</p>
+		</form>
+	);
+}
+
+function VerifyEmailForm({
+	copy,
+	locale,
+	email,
+	guest,
+	resendAt,
+	onResend,
+	onChangeEmail,
+	onSuccess,
+}: {
+	copy: Copy;
+	locale: Locale;
+	email: string;
+	guest: AccountSession | null;
+	resendAt: number;
+	onResend: () => Promise<void>;
+	onChangeEmail: () => void;
+	onSuccess: (session: AccountSession) => Promise<void>;
+}) {
+	const [busy, setBusy] = useState(false);
+	const [error, setError] = useState("");
+	const [status, setStatus] = useState("");
+	const [now, setNow] = useState(() => Date.now());
+	const waitSeconds = Math.max(0, Math.ceil((resendAt - now) / 1000));
+
+	useEffect(() => {
+		if (waitSeconds === 0) return;
+		const timer = window.setInterval(() => setNow(Date.now()), 1000);
+		return () => window.clearInterval(timer);
+	}, [waitSeconds]);
+
+	async function submit(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		const form = new FormData(event.currentTarget);
+		setBusy(true);
+		setError("");
+		setStatus("");
+		try {
+			const session = await verifyRegistration(
+				locale,
+				{ email, code: field(form, "one-time-code").trim() },
+				guest?.token,
+			);
+			await onSuccess(session);
+		} catch (caught) {
+			setError(errorText(caught, copy.requestFailed));
+		} finally {
+			setBusy(false);
+		}
+	}
+
+	async function resend() {
+		setBusy(true);
+		setError("");
+		setStatus("");
+		try {
+			await onResend();
+			setNow(Date.now());
+			setStatus(copy.codeResent);
+		} catch (caught) {
+			setError(errorText(caught, copy.requestFailed));
+		} finally {
+			setBusy(false);
+		}
+	}
+
+	const resendLabel =
+		waitSeconds > 0
+			? copy.resendIn.replace("{seconds}", String(waitSeconds))
+			: copy.resendCode;
+
+	return (
+		<form className="account-form" method="post" onSubmit={submit}>
+			<p>
+				{copy.codeSent} <strong dir="ltr">{email}</strong>.
+			</p>
+			<TextField
+				label={copy.verificationCode}
+				hint={copy.codeHint}
+				name="one-time-code"
+				autoComplete="one-time-code"
+				inputMode="numeric"
+				pattern="[0-9]{6}"
+				minLength={6}
+				maxLength={6}
+				dir="ltr"
+				required
+				autoFocus
+			/>
+			<FormError text={error} />
+			<output className="account-hint" aria-live="polite">
+				{status}
+			</output>
+			<div className="actions">
+				<button
+					type="submit"
+					className="button"
+					disabled={busy}
+					title={copy.verify}
+				>
+					{copy.verify}
+				</button>
+				<button
+					type="button"
+					className="text-link"
+					disabled={busy || waitSeconds > 0}
+					onClick={() => void resend()}
+					title={resendLabel}
+				>
+					{resendLabel}
+				</button>
+			</div>
+			<p className="account-switch">
+				<button
+					type="button"
+					className="text-link"
+					onClick={onChangeEmail}
+					title={copy.changeEmail}
+				>
+					{copy.changeEmail}
+				</button>
 			</p>
 		</form>
 	);

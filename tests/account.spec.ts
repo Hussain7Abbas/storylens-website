@@ -157,11 +157,34 @@ test("login form carries password-manager hints and hands the session to the ext
 	expect(await storedSession(page)).toEqual(member);
 });
 
-test("registration upgrades the guest with its token", async ({ page }) => {
+test("registration verifies the emailed code and upgrades the guest", async ({
+	page,
+}) => {
 	await installFakeExtension(page, guest);
-	let authorization: string | undefined;
+	const authorizations: (string | undefined)[] = [];
+	let verifyBody: unknown;
+	let registerCalls = 0;
 	await page.route("**/auth/register", async (route) => {
-		authorization = route.request().headers().authorization;
+		registerCalls += 1;
+		authorizations.push(route.request().headers().authorization);
+		await route.fulfill({
+			json: {
+				email: "reader@example.com",
+				expiresAt: new Date(Date.now() + 600_000).toISOString(),
+				resendAfterSeconds: 0,
+			},
+		});
+	});
+	await page.route("**/auth/register/verify", async (route) => {
+		authorizations.push(route.request().headers().authorization);
+		verifyBody = route.request().postDataJSON();
+		if ((verifyBody as { code: string }).code !== "123456") {
+			await route.fulfill({
+				status: 400,
+				json: { message: "Incorrect code. 4 attempts left." },
+			});
+			return;
+		}
 		await route.fulfill({ json: member });
 	});
 	await page.goto("/en/profile/register/");
@@ -173,9 +196,61 @@ test("registration upgrades the guest with its token", async ({ page }) => {
 	await page.getByLabel("Email").fill("reader@example.com");
 	await page.getByLabel("Password").fill("a-long-password");
 	await page.getByRole("button", { name: "Create account" }).click();
+
+	const code = page.getByLabel("Verification code");
+	await expect(code).toHaveAttribute("autocomplete", "one-time-code");
+	await expect(page.getByText("reader@example.com")).toBeVisible();
+	expect(await storedSession(page)).toEqual(guest);
+
+	await code.fill("000000");
+	await page.getByRole("button", { name: "Verify email" }).click();
+	await expect(page.locator(".account-error")).toHaveText(
+		"Incorrect code. 4 attempts left.",
+	);
+
+	await page.getByRole("button", { name: "Resend code" }).click();
+	await expect(page.locator("output.account-hint")).toHaveText(
+		"A new code is on its way.",
+	);
+	expect(registerCalls).toBe(2);
+
+	await code.fill("123456");
+	await page.getByRole("button", { name: "Verify email" }).click();
 	await expect(page).toHaveURL(/\/en\/profile\/$/);
-	expect(authorization).toBe("Bearer guest-token");
+	expect(verifyBody).toEqual({ email: "reader@example.com", code: "123456" });
+	expect(authorizations).toEqual(Array(4).fill("Bearer guest-token"));
 	expect(await storedSession(page)).toEqual(member);
+});
+
+test("changing the email returns to a prefilled registration form", async ({
+	page,
+}) => {
+	await installFakeExtension(page, guest);
+	await page.route("**/auth/register", (route) =>
+		route.fulfill({
+			json: {
+				email: "reader@example.com",
+				expiresAt: new Date(Date.now() + 600_000).toISOString(),
+				resendAfterSeconds: 60,
+			},
+		}),
+	);
+	await page.goto("/ar/profile/register/");
+	await page.getByLabel("البريد الإلكتروني").fill("reader@example.com");
+	await page.getByLabel("كلمة المرور").fill("a-long-password");
+	await page.getByRole("button", { name: "إنشاء حساب" }).click();
+	await expect(
+		page.getByRole("button", { name: /إعادة الإرسال بعد \d+ ث/ }),
+	).toBeDisabled();
+	const result = await new AxeBuilder({ page })
+		.withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+		.analyze();
+	expect(result.violations).toEqual([]);
+	await page.getByRole("button", { name: "استخدام بريد إلكتروني آخر" }).click();
+	await expect(page.getByLabel("البريد الإلكتروني")).toHaveValue(
+		"reader@example.com",
+	);
+	await expect(page.getByLabel("اسم المستخدم")).toHaveValue("QuietOwl42");
 });
 
 test("signing out clears the extension session", async ({ page }) => {
