@@ -344,7 +344,13 @@ test("profile editing leaves the email to a separate verified change", async ({
 
 	const code = page.getByLabel("Verification code");
 	await code.fill("000000");
+	const rejectedCode = page.waitForResponse(
+		(response) =>
+			response.url().endsWith("/auth/change-email/verify") &&
+			response.status() === 400,
+	);
 	await page.getByRole("button", { name: "Confirm" }).click();
+	await rejectedCode;
 	await expect(page.locator(".account-error")).toHaveText(
 		"Incorrect code. 4 attempts left.",
 	);

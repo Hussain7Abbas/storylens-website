@@ -101,6 +101,7 @@ for (const locale of ["en", "ar"] as const) {
 				videoBox.y + videoBox.height / 3,
 			);
 		}
+		await video.evaluate((element: HTMLVideoElement) => element.pause());
 		await video.evaluate(async (element: HTMLVideoElement) => {
 			await new Promise<void>((resolve) => {
 				element.addEventListener("seeked", () => resolve(), { once: true });
