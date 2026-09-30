@@ -98,7 +98,7 @@
 	"privacyTitle": "Know where your chapter goes.",
 	"privacyPoints": [
 		"Summaries start when you click; your chosen AI provider receives the page content.",
-		"AI-assisted chapter detection sends the page URL and HTML through the API to OpenRouter.",
+		"Chapter detection uses your connected AI provider; without one, it sends the page URL and HTML through the API to OpenRouter.",
 		"Downloaded reference data and extension preferences live on your device.",
 		"Website analytics load only if you allow them, and there are no advertising scripts."
 	],
@@ -121,7 +121,7 @@
 		],
 		[
 			"Which AI does it use?",
-			"Chapter-selector detection uses OpenRouter through the backend. Page summaries use your own installed Claude Code or Codex CLI through the optional companion. Provider charges and limits depend on your account."
+			"With the companion connected, chapter-selector detection and summaries use your chosen Claude Code or Codex CLI provider. Without a connected AI provider, selector detection uses OpenRouter through the backend. Provider charges and limits depend on your account."
 		],
 		[
 			"Is Arabic supported?",

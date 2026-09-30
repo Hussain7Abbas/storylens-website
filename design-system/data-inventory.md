@@ -1,6 +1,6 @@
-# Data handling inventory — verified 2026-09-27
+# Data handling inventory — selector flow updated 2026-09-30
 
-Source snapshots: backend `6a800550c57c3e022aebf40633adeb4337edc9da`, extension `78b3c8e87603d9be46922f7612ec2e76eecb65d4`, client `a1ee92e07ab21ddd883b074e381d8406a1e5a1b8`.
+Original source snapshots: backend `6a800550c57c3e022aebf40633adeb4337edc9da`, extension `78b3c8e87603d9be46922f7612ec2e76eecb65d4`, client `a1ee92e07ab21ddd883b074e381d8406a1e5a1b8`. The selector row below also reflects the current local `develop` extension.
 
 | Data / behavior | Evidence | Policy limit |
 | --- | --- | --- |
@@ -8,7 +8,8 @@ Source snapshots: backend `6a800550c57c3e022aebf40633adeb4337edc9da`, extension 
 | Session token/expiry; optional IP/user agent fields | schema; src/lib/auth/session.ts; src/lib/auth/index.ts | Schema supports metadata; no blanket statement every custom login populates it; no immediate expiry cleanup promise |
 | Shared reference catalogue | novels/keywords/replacements routes and middleware/authorize.ts | Authenticated reads, role-limited writes; not private |
 | Images and URL metadata | storage/helpers.ts and routes/files.ts | ImgBB upload; no verified guarantee that removing DB reference erases third-party copy |
-| Optional selector detection | extension node-selector-form.tsx handleAutoDetect; utils/detect-chapter-selectors.ts; backend routes/ai.ts | User action, page URL+HTML → backend/OpenRouter; route has no DB write; form save persists selectors separately |
+| Optional selector detection | extension node-selector-form.tsx handleAutoDetect; lib/desktop-client/selector-detection.ts; utils/detect-chapter-selectors.ts; backend routes/ai.ts | User action. With desktop AI configured, URL + bounded page outline → Story Lens Client → selected Claude/Codex provider; no API detection call or automatic OpenRouter fallback on desktop failure. Without it, URL + HTML → backend, which extracts context for OpenRouter; route has no DB write. Form save persists selectors separately |
+| Extension analytics | extension lib/analytics and General setting | Optional Google Analytics 4 events when configured and enabled; selector detection event includes only provider choice and effort, not URL, hostname, page text, title, or account ID |
 | Provider selection | backend lib/ai/client.ts | Google Gemini default configurable; no zero-retention guarantee |
 | Summaries | extension lib/desktop-client; client server/service/providers; docs/client.md | Requested page body sanitized, may retain personal content; local transport then own provider; no backend summary path |
 | Local preferences and downloaded references | extension lib/offline and popup settings; client config.ts | Local until cleared; queue sends supported edits when synced; desktop uninstall does not promise settings removal |

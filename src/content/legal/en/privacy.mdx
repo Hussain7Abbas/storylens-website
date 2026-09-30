@@ -1,13 +1,13 @@
 ---
 title: "Privacy Policy"
-lastUpdated: "2026-09-27"
-version: "1.1.0"
-changelog: "Added opt-in Google Analytics on the website / إضافة Google Analytics الاختيارية في الموقع"
+lastUpdated: "2026-09-30"
+version: "1.2.0"
+changelog: "Updated selector detection provider routing and extension analytics disclosure / تحديث مسار مزود كشف المحددات وإفصاح تحليلات الإضافة"
 ---
 
 ## At a glance
 
-Story Lens adds character reference tools and text replacements to your browser. Accounts and shared reference data use the Story Lens API. Optional AI chapter detection sends page URL and HTML to OpenRouter and a model provider. Optional summaries send the selected page through the desktop companion to your own AI provider. This website loads Google Analytics only if you allow it and has no advertising scripts. The extension does not include analytics. Hosting and security services still process network requests.
+Story Lens adds character reference tools and text replacements to your browser. Accounts and shared reference data use the Story Lens API. Optional AI chapter detection uses your selected provider through the desktop companion when connected; otherwise it sends the page URL and HTML to the Story Lens API for OpenRouter detection. Optional summaries send the selected page through the desktop companion to your own AI provider. This website loads Google Analytics only if you allow it and has no advertising scripts. Extension analytics can be disabled in its General settings. Hosting and security services still process network requests.
 
 ## Operator and contact
 
@@ -21,7 +21,7 @@ Novels, chapter metadata, keywords, descriptions, aliases, versions, categories,
 
 ## Two different AI paths
 
-**Chapter-selector detection:** when you choose AI-assisted detection in the selector form, the extension sends the current page URL and HTML to the Story Lens API, which calls OpenRouter and its upstream model provider. The configured default model is Google Gemini, but configuration or a request can select another model. The returned selectors populate a form; saving the form stores selector information separately. The detection route has no database write for raw HTML. Provider retention and training practices depend on the provider and routing settings; do not assume zero retention.
+**Chapter-selector detection:** when you choose AI-assisted detection with a desktop AI provider configured, the extension sends the current page URL and a bounded outline of relevant page elements through Story Lens Client to your selected Claude or Codex provider. The page HTML stays out of the Story Lens API in this path. A failed desktop request does not switch providers. Without a configured desktop AI provider, the extension sends the page URL and HTML to the Story Lens API, which extracts page context and calls OpenRouter and its upstream model provider. The OpenRouter default model is Google Gemini, but server configuration can select another model. The returned selectors populate a form; saving the form stores selector information separately. The detection route has no database write for raw HTML. Provider retention and training practices depend on the provider and routing settings; do not assume zero retention.
 
 **Desktop AI reading tools:** when you click Summarize page, the extension removes scripts, forms, controls, hidden nodes, and prior summary UI from a clone of the page body. The remaining HTML goes to the authenticated desktop service on your own computer, then to the provider behind your installed Claude Code or Codex CLI. Requested keyword suggestions can send selected text and reference context, and chapter keyword extraction can send chapter text and known reference names, through the same desktop path. Visible personal information may remain. The Story Lens backend does not receive these desktop AI requests. The companion does not log prompts or output; provider processing follows your own provider account terms. Do not submit pages you are not allowed to share.
 
@@ -52,7 +52,7 @@ You can change your choice at any time with "Analytics settings" in the site foo
 
 This site is served by Nginx on the operator’s server behind Cloudflare. Requests can reveal IP addresses, request time, paths, response status, browser information, and referrers to hosting and network services. Website Nginx access logs rotate daily with 14 rotations retained. Backend logs record method, status, path, and errors; error messages and stacks can contain diagnostic data. Backend application log retention has no verified fixed limit, so no automatic deletion deadline is promised.
 
-Processors and independent services include the infrastructure host, Cloudflare, ImgBB, OpenRouter, its model providers, Google (only for website analytics you allow), and—in the summary path—your chosen Anthropic or OpenAI service. These services may process data internationally under their own policies. No single-country processing or specific transfer mechanism is promised here. We may disclose data when legally required or reasonably necessary to protect security and rights.
+Processors and independent services include the infrastructure host, Cloudflare, ImgBB, OpenRouter and its model providers (for selector detection without desktop AI), Google (for website analytics you allow and extension analytics when configured and enabled), and your chosen Anthropic or OpenAI service for desktop AI actions. These services may process data internationally under their own policies. No single-country processing or specific transfer mechanism is promised here. We may disclose data when legally required or reasonably necessary to protect security and rights.
 
 See [Cloudflare’s privacy policy](https://www.cloudflare.com/policies/privacy/), [ImgBB’s privacy policy](https://imgbb.com/privacy), [OpenRouter’s privacy policy](https://openrouter.ai/privacy), [Google’s privacy policy](https://policies.google.com/privacy), [Anthropic’s privacy policy](https://www.anthropic.com/legal/privacy), and [OpenAI’s privacy policy](https://openai.com/policies/privacy-policy/). External pages have their own terms.
 
