@@ -215,6 +215,9 @@ export function Landing({ locale }: { locale: Locale }) {
 							<a className="text-link" href={siteConfig.client}>
 								{m.source}
 							</a>
+							<a className="text-link" href={`/${locale}/pricing/`}>
+								{m.pricing.seePricing}
+							</a>
 						</div>
 						<p className="download-note">{m.downloadNote}</p>
 					</div>

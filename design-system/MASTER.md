@@ -42,6 +42,10 @@ Keep the 4/8/16/24/32/48/64 spacing rhythm, fluid headings and section spacing, 
 
 The website hero pairs product copy with an aligned chapter card, illustrative highlights, a character note below the passage and optional glass lens. Use the original demo instead of unverified testimonials. Feature cards, companion panel, bilingual legal pages and account forms all use the same tokens. Extension pages cover onboarding, reading, settings, forms and extraction. In-page launcher, tooltips and AI panels honor system color scheme; extension pages honor their saved Mantine preference.
 
+### Lens coin and prices
+
+The lens coin is the iris coin from the umbrella `docs/branding/lens-coin/` (full from 24 px, simplified below, a 1.75-stroke line coin in `currentColor` inside filled buttons). Prices are a coin plus a tabular number (`LensPrice`); 0 reads "Free" in the success color; the accessible text names the amount with the right plural ("3 lenses", "3 عدسات"). The balance card pairs a 56 px coin with the amount and its muted dollar value. The request form uses chip presets (`aria-pressed`), a WhatsApp/Telegram segmented choice and a live total; statuses are small chips (approved in success, rejected in error, cancelled muted). The gift dialog is a centered card with a 72 px coin and one short burst of iris sparkles; the pricing table is a plain bordered table with the feature description muted under its name.
+
 ## Motion and 3D
 
 Motion is optional. GSAP reveals are one-shot, clean up through useGSAP, and convey no required information. Three.js stays lazy, gated by desktop width, WebGL2, hardware concurrency, data-saver, visibility and motion preference. Demand rendering avoids continuous work. Both the chapter texture and decorative lens rim read the current palette and update on theme changes. Geometry/camera values are deliberate decorative constants.

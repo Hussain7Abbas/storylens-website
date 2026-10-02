@@ -12,6 +12,11 @@ Final English/Arabic headlines, paragraphs, CTA labels, original story passage, 
 | Optional chapter AI | backend src/routes/ai.ts; extension src/components/node-selector/node-selector-form.tsx |
 | Local companion and selected provider | client src/{server,service,providers}; docs/client.md |
 | Arabic and Firefox source builds | extension src/i18n; wxt.config.ts and Makefile |
+| Website account works without the extension; an installed extension signs in from it | website src/components/account/AccountApp.tsx, src/lib/account/reconcile.ts; backend src/routes/web-session.ts; docs/website.md "Account pages" |
+| Lens prices, trial and request limits (shown from the API only) | backend src/routes/billing.ts `GET /pricing`; src/lib/billing/config.ts |
+| Lenses charged at start, refunded on failure, free retry, never expire | backend src/lib/ai/cloud/actions.ts; pricing-plan D5, D19 |
+| Payment arranged by contacting the reader; lenses added after approval | backend src/routes/billing.ts, src/routes/admin/billing.ts; pricing-plan D9, D21 |
+| Providers that keep no data preferred, others allowed | backend src/lib/ai/openrouter-provider.ts; pricing-plan D18 |
 | License | LICENSE.md |
 | No analytics on website | website source and dependency/asset network checks |
 

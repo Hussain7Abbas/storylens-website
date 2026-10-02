@@ -5,6 +5,7 @@ import { analyticsEnabled } from "@/lib/analytics";
 import { type Locale, siteConfig } from "@/lib/site-config";
 import { AnalyticsSettingsButton } from "./AnalyticsConsent";
 import { Controls } from "./Controls";
+import { HeaderAccount } from "./HeaderAccount";
 export function Header({ locale }: { locale: Locale }) {
 	const m = getMessages(locale);
 	return (
@@ -23,8 +24,10 @@ export function Header({ locale }: { locale: Locale }) {
 					<a href={`/${locale}/#features`}>{m.features}</a>
 					<a href={`/${locale}/#how`}>{m.how}</a>
 					<a href={`/${locale}/#companion`}>{m.companion}</a>
+					<a href={`/${locale}/pricing/`}>{m.pricing.nav}</a>
 				</nav>
 				<Controls locale={locale} />
+				<HeaderAccount locale={locale} />
 				<a
 					className="button compact header-install"
 					href={siteConfig.chrome}
@@ -51,6 +54,7 @@ export function Footer({ locale }: { locale: Locale }) {
 				</div>
 				<nav aria-label={locale === "ar" ? "روابط الموقع" : "Site links"}>
 					<a href={`/${locale}/profile/`}>{m.account.nav}</a>
+					<a href={`/${locale}/pricing/`}>{m.pricing.nav}</a>
 					<a href={`/${locale}/privacy/`}>{m.privacy}</a>
 					<a href={`/${locale}/terms/`}>{m.terms}</a>
 					{analyticsEnabled ? (

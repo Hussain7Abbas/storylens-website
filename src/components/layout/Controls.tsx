@@ -119,6 +119,9 @@ export function Controls({ locale }: { locale: Locale }) {
 							{label}
 						</a>
 					))}
+					<a href={`/${locale}/pricing/`} onClick={close}>
+						{m.pricing.nav}
+					</a>
 				</nav>
 			</dialog>
 		</div>

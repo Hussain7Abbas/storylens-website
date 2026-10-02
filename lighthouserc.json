@@ -5,7 +5,9 @@
 			"url": [
 				"http://localhost/en/",
 				"http://localhost/ar/",
-				"http://localhost/en/privacy/"
+				"http://localhost/en/privacy/",
+				"http://localhost/en/pricing/",
+				"http://localhost/ar/pricing/"
 			],
 			"numberOfRuns": 1,
 			"settings": {

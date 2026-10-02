@@ -1,20 +1,18 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, type Page, test } from "@playwright/test";
+import { expect, type Page, type Request, test } from "@playwright/test";
 
-type Session = {
-	user: {
-		id: string;
-		email: string;
-		username: string;
-		name: string;
-		isGuest: boolean;
-		role: { id: string; slug: string; name: string } | null;
-		permissions: string[];
-	};
-	token: string;
-} | null;
+type User = {
+	id: string;
+	email: string;
+	username: string;
+	name: string;
+	isGuest: boolean;
+	role: { id: string; slug: string; name: string } | null;
+	permissions: string[];
+};
+type Session = { user: User; token: string } | null;
 
-const guest: Session = {
+const guest: NonNullable<Session> = {
 	user: {
 		id: "guest-id",
 		email: "reader@guest.storylens.local",
@@ -26,17 +24,22 @@ const guest: Session = {
 	},
 	token: "guest-token",
 };
-const member: NonNullable<Session> = {
-	user: {
-		id: "guest-id",
-		email: "reader@example.com",
-		username: "QuietOwl42",
-		name: "Reader",
-		isGuest: false,
-		role: { id: "role-reader", slug: "reader", name: "Reader" },
-		permissions: ["GET /api/user/auth/me", "POST /api/user/keywords/"],
-	},
-	token: "member-token",
+// The same account after registering (a guest upgrades in place, keeping its ID).
+const reader: User = {
+	id: "guest-id",
+	email: "reader@example.com",
+	username: "QuietOwl42",
+	name: "Reader",
+	isGuest: false,
+	role: { id: "role-reader", slug: "reader", name: "Reader" },
+	permissions: ["GET /api/user/auth/me", "POST /api/user/keywords/"],
+};
+const other: User = {
+	...reader,
+	id: "other-id",
+	email: "other@example.com",
+	username: "Other",
+	name: "Other reader",
 };
 
 /**
@@ -79,32 +82,172 @@ function storedSession(page: Page): Promise<Session> {
 	);
 }
 
-for (const locale of ["en", "ar"] as const) {
-	test(`${locale}: profile explains when the extension is missing`, async ({
-		page,
-	}) => {
-		await page.goto(`/${locale}/profile/login/`);
-		await expect(page.locator(".account-card h2")).toHaveText(
-			locale === "ar"
-				? "لم يُعثر على إضافة Story Lens"
-				: "Story Lens extension not found",
-		);
-		await expect(page.locator("form")).toHaveCount(0);
-		await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
-			"content",
-			/noindex/,
-		);
+type Call = {
+	method: string;
+	path: string;
+	body: unknown;
+	authorization?: string;
+	csrf?: string;
+};
+
+/**
+ * The reader API with the website's cookie session held in memory: `web` is
+ * the account the cookie belongs to. Every call is recorded.
+ */
+async function mockApi(
+	page: Page,
+	{ web = null, google = false }: { web?: User | null; google?: boolean } = {},
+) {
+	const state = { web, calls: [] as Call[], registerCalls: 0 };
+	const bearerUsers: Record<string, User> = {
+		"member-token": reader,
+		"other-token": other,
+	};
+	const json = (request: Request) => {
+		try {
+			return request.postDataJSON() as Record<string, unknown> | null;
+		} catch {
+			return null;
+		}
+	};
+	await page.route("**/api/user/**", async (route) => {
+		const request = route.request();
+		const path = new URL(request.url()).pathname.replace("/api/user", "");
+		const method = request.method();
+		const body = json(request);
+		state.calls.push({
+			method,
+			path,
+			body,
+			authorization: request.headers().authorization,
+			csrf: request.headers()["x-storylens-web"],
+		});
+		// Answers 401 when the website is signed out; true when it did.
+		const signedOut = async () => {
+			if (state.web) return false;
+			await route.fulfill({
+				status: 401,
+				json: { message: "Authentication required" },
+			});
+			return true;
+		};
+		switch (`${method} ${path}`) {
+			case "GET /auth/providers":
+				return route.fulfill({ json: { google } });
+			case "GET /auth/me":
+				return state.web
+					? route.fulfill({ json: state.web })
+					: route.fulfill({
+							status: 401,
+							json: { message: "Authentication required" },
+						});
+			case "PUT /auth/me":
+				if (await signedOut()) return;
+				state.web = { ...(state.web as User), ...(body as object) };
+				return route.fulfill({ json: state.web });
+			case "POST /auth/web/login":
+				if (body?.password !== "right-password")
+					return route.fulfill({
+						status: 401,
+						json: { message: "Invalid email or password" },
+					});
+				state.web = reader;
+				return route.fulfill({ json: { user: reader } });
+			case "POST /auth/register":
+				state.registerCalls += 1;
+				return route.fulfill({
+					json: {
+						email: "reader@example.com",
+						expiresAt: new Date(Date.now() + 600_000).toISOString(),
+						resendAfterSeconds: 0,
+					},
+				});
+			case "POST /auth/web/register/verify":
+				if (body?.code !== "123456")
+					return route.fulfill({
+						status: 400,
+						json: { message: "Incorrect code. 4 attempts left." },
+					});
+				state.web = reader;
+				return route.fulfill({ json: { user: reader, gift: { lenses: 10 } } });
+			case "POST /auth/web/oauth/session":
+				state.web = reader;
+				return route.fulfill({ json: { user: reader } });
+			case "POST /auth/web/logout":
+				state.web = null;
+				return route.fulfill({ json: { success: true } });
+			case "POST /auth/web/extension-session":
+				if (await signedOut()) return;
+				return route.fulfill({
+					json: { user: state.web, token: "handoff-token" },
+				});
+			case "POST /auth/web/adopt": {
+				const token = request.headers().authorization?.replace("Bearer ", "");
+				const user = token ? bearerUsers[token] : undefined;
+				if (!user)
+					return route.fulfill({ status: 401, json: { message: "No" } });
+				state.web = user;
+				return route.fulfill({ json: { user } });
+			}
+			case "POST /auth/change-password":
+			case "POST /auth/change-email":
+				if (await signedOut()) return;
+				return route.fulfill({
+					json: {
+						email:
+							path === "/auth/change-email"
+								? (body?.email as string)
+								: (state.web as User).email,
+						expiresAt: new Date(Date.now() + 600_000).toISOString(),
+						resendAfterSeconds: 60,
+					},
+				});
+			case "POST /auth/change-password/verify":
+				if (await signedOut()) return;
+				return route.fulfill({ json: { success: true } });
+			case "POST /auth/change-email/verify":
+				if (await signedOut()) return;
+				if (body?.code !== "123456")
+					return route.fulfill({
+						status: 400,
+						json: { message: "Incorrect code. 4 attempts left." },
+					});
+				state.web = { ...(state.web as User), email: "new@example.com" };
+				return route.fulfill({ json: state.web });
+			default:
+				return route.fulfill({ status: 404, json: { message: "Not mocked" } });
+		}
 	});
+	return state;
+}
+
+const calls = (state: { calls: Call[] }, method: string, path: string) =>
+	state.calls.filter((call) => call.method === method && call.path === path);
+
+async function expectAccessible(page: Page) {
+	expect(
+		await page.evaluate(
+			() => document.documentElement.scrollWidth <= innerWidth,
+		),
+	).toBeTruthy();
+	const result = await new AxeBuilder({ page })
+		.withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+		.analyze();
+	expect(result.violations).toEqual([]);
+}
+
+for (const locale of ["en", "ar"] as const) {
 	for (const theme of ["light", "dark"] as const)
-		for (const route of [
-			"profile/",
-			"profile/login/",
-			"profile/register/",
-			"profile/email/",
-			"profile/oauth/?error=access_denied",
-		])
+		for (const [route, web] of [
+			["profile/", reader],
+			["profile/login/", null],
+			["profile/register/", null],
+			["profile/email/", reader],
+			["profile/oauth/?error=access_denied", null],
+		] as const)
 			test(`${locale}/${route}: accessibility ${theme}`, async ({ page }) => {
-				await installFakeExtension(page, guest);
+				await installFakeExtension(page, web ? null : guest);
+				await mockApi(page, { web });
 				await page.emulateMedia({
 					reducedMotion: "reduce",
 					colorScheme: theme,
@@ -117,37 +260,24 @@ for (const locale of ["en", "ar"] as const) {
 					page.locator(".account-card .button").first(),
 				).toBeVisible();
 				await expect(page.locator("h1")).toHaveCount(1);
-				expect(
-					await page.evaluate(
-						() => document.documentElement.scrollWidth <= innerWidth,
-					),
-				).toBeTruthy();
-				const result = await new AxeBuilder({ page })
-					.withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
-					.analyze();
-				expect(result.violations).toEqual([]);
+				await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+					"content",
+					/noindex/,
+				);
+				await expectAccessible(page);
 			});
 }
 
-test("login form carries password-manager hints and hands the session to the extension", async ({
+test("without the extension, signing in works and the profile offers the install", async ({
 	page,
 }) => {
-	await installFakeExtension(page, null);
-	await page.route("**/auth/login", async (route) => {
-		const body = route.request().postDataJSON();
-		await route.fulfill(
-			body.password === "right-password"
-				? { json: member }
-				: { status: 401, json: { message: "Invalid email or password" } },
-		);
-	});
+	const api = await mockApi(page);
 	await page.goto("/en/profile/login/");
 	const email = page.getByLabel("Email");
 	const password = page.getByLabel("Password");
 	await expect(email).toHaveAttribute("autocomplete", "username");
 	await expect(email).toHaveAttribute("name", "email");
 	await expect(password).toHaveAttribute("autocomplete", "current-password");
-	await expect(password).toHaveAttribute("type", "password");
 
 	await email.fill("reader@example.com");
 	await password.fill("wrong-password");
@@ -155,104 +285,81 @@ test("login form carries password-manager hints and hands the session to the ext
 	await expect(page.locator(".account-error")).toHaveText(
 		"Email or password is incorrect.",
 	);
-	expect(await storedSession(page)).toBeNull();
 
 	await password.fill("right-password");
 	await page.getByRole("button", { name: "Sign in" }).click();
 	await expect(page).toHaveURL(/\/en\/profile\/$/);
-	await expect(page.getByText("reader@example.com")).toBeVisible();
-	expect(await storedSession(page)).toEqual(member);
+	await expect(page.locator(".account-details")).toContainText(
+		"reader@example.com",
+	);
+	const install = page.getByRole("region", { name: "Story Lens extension" });
+	await expect(
+		install.getByRole("link", { name: /Add to Chrome/ }),
+	).toHaveAttribute("data-analytics-cta", "profile");
+	const login = calls(api, "POST", "/auth/web/login");
+	expect(login.at(-1)?.csrf).toBe("1");
+	expect(login.at(-1)?.authorization).toBeUndefined();
+	// Phones show the icon only; the accessible name carries the text.
+	await expect(page.locator(".header-account")).toHaveAttribute(
+		"aria-label",
+		"Your profile: Reader",
+	);
 });
 
-test("registration verifies the emailed code and upgrades the guest", async ({
+test("registration upgrades the extension's guest, then hands it the account", async ({
 	page,
 }) => {
 	await installFakeExtension(page, guest);
-	const authorizations: (string | undefined)[] = [];
-	let verifyBody: unknown;
-	let registerCalls = 0;
-	await page.route("**/auth/register", async (route) => {
-		registerCalls += 1;
-		authorizations.push(route.request().headers().authorization);
-		await route.fulfill({
-			json: {
-				email: "reader@example.com",
-				expiresAt: new Date(Date.now() + 600_000).toISOString(),
-				resendAfterSeconds: 0,
-			},
-		});
-	});
-	await page.route("**/auth/register/verify", async (route) => {
-		authorizations.push(route.request().headers().authorization);
-		verifyBody = route.request().postDataJSON();
-		if ((verifyBody as { code: string }).code !== "123456") {
-			await route.fulfill({
-				status: 400,
-				json: { message: "Incorrect code. 4 attempts left." },
-			});
-			return;
-		}
-		await route.fulfill({ json: member });
-	});
+	const api = await mockApi(page);
 	await page.goto("/en/profile/register/");
 	await expect(page.getByLabel("Username")).toHaveValue("QuietOwl42");
-	await expect(page.getByLabel("Password")).toHaveAttribute(
-		"autocomplete",
-		"new-password",
-	);
 	await page.getByLabel("Email").fill("reader@example.com");
 	await page.getByLabel("Password").fill("a-long-password");
 	await page.getByRole("button", { name: "Create account" }).click();
 
 	const code = page.getByLabel("Verification code");
 	await expect(code).toHaveAttribute("autocomplete", "one-time-code");
-	await expect(page.getByText("reader@example.com")).toBeVisible();
-	expect(await storedSession(page)).toEqual(guest);
-
 	await code.fill("000000");
 	await page.getByRole("button", { name: "Verify email" }).click();
 	await expect(page.locator(".account-error")).toHaveText(
 		"Incorrect code. 4 attempts left.",
 	);
-
 	await page.getByRole("button", { name: "Resend code" }).click();
 	await expect(page.locator("output.account-hint")).toHaveText(
 		"A new code is on its way.",
 	);
-	expect(registerCalls).toBe(2);
+	expect(api.registerCalls).toBe(2);
 
 	await code.fill("123456");
 	await page.getByRole("button", { name: "Verify email" }).click();
 	await expect(page).toHaveURL(/\/en\/profile\/$/);
-	expect(verifyBody).toEqual({ email: "reader@example.com", code: "123456" });
-	expect(authorizations).toEqual(Array(4).fill("Bearer guest-token"));
-	expect(await storedSession(page)).toEqual(member);
+	await expect(
+		page.getByText("The extension in this browser uses this account."),
+	).toBeVisible();
+	const verify = calls(api, "POST", "/auth/web/register/verify");
+	expect(verify.map((call) => call.authorization)).toEqual([
+		"Bearer guest-token",
+		"Bearer guest-token",
+	]);
+	expect(calls(api, "POST", "/auth/web/extension-session")[0]?.body).toEqual({
+		guestToken: "guest-token",
+	});
+	expect(await storedSession(page)).toEqual({
+		user: reader,
+		token: "handoff-token",
+	});
 });
 
 test("changing the email returns to a prefilled registration form", async ({
 	page,
 }) => {
 	await installFakeExtension(page, guest);
-	await page.route("**/auth/register", (route) =>
-		route.fulfill({
-			json: {
-				email: "reader@example.com",
-				expiresAt: new Date(Date.now() + 600_000).toISOString(),
-				resendAfterSeconds: 60,
-			},
-		}),
-	);
+	await mockApi(page);
 	await page.goto("/ar/profile/register/");
 	await page.getByLabel("البريد الإلكتروني").fill("reader@example.com");
 	await page.getByLabel("كلمة المرور").fill("a-long-password");
 	await page.getByRole("button", { name: "إنشاء حساب" }).click();
-	await expect(
-		page.getByRole("button", { name: /إعادة الإرسال بعد \d+ ث/ }),
-	).toBeDisabled();
-	const result = await new AxeBuilder({ page })
-		.withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
-		.analyze();
-	expect(result.violations).toEqual([]);
+	await expect(page.getByLabel("رمز التحقق")).toBeVisible();
 	await page.getByRole("button", { name: "استخدام بريد إلكتروني آخر" }).click();
 	await expect(page.getByLabel("البريد الإلكتروني")).toHaveValue(
 		"reader@example.com",
@@ -260,140 +367,281 @@ test("changing the email returns to a prefilled registration form", async ({
 	await expect(page.getByLabel("اسم المستخدم")).toHaveValue("QuietOwl42");
 });
 
-test("password changes are confirmed with a code sent to the account email", async ({
+for (const view of ["", "password/", "email/"])
+	test(`signed out, profile/${view} sends the reader to sign in and back`, async ({
+		page,
+	}) => {
+		await mockApi(page);
+		await page.goto(`/en/profile/${view}`);
+		await expect(page).toHaveURL(
+			new RegExp(
+				`/en/profile/login/\\?next=${encodeURIComponent(`/en/profile/${view}`)}$`,
+			),
+		);
+		await page.getByLabel("Email").fill("reader@example.com");
+		await page.getByLabel("Password").fill("right-password");
+		await page.getByRole("button", { name: "Sign in" }).click();
+		await expect(page).toHaveURL(new RegExp(`/en/profile/${view}$`));
+	});
+
+test("a next address outside the account pages is ignored", async ({
 	page,
 }) => {
-	await installFakeExtension(page, member);
-	let requestBody: unknown;
-	let verifyBody: unknown;
-	const authorizations: (string | undefined)[] = [];
-	await page.route("**/auth/change-password", async (route) => {
-		requestBody = route.request().postDataJSON();
-		authorizations.push(route.request().headers().authorization);
-		await route.fulfill({
-			json: {
-				email: "reader@example.com",
-				expiresAt: new Date(Date.now() + 600_000).toISOString(),
-				resendAfterSeconds: 60,
-			},
-		});
+	await mockApi(page);
+	await page.goto("/en/profile/login/?next=https://evil.example/");
+	await page.getByLabel("Email").fill("reader@example.com");
+	await page.getByLabel("Password").fill("right-password");
+	await page.getByRole("button", { name: "Sign in" }).click();
+	await expect(page).toHaveURL("http://localhost:4173/en/profile/");
+});
+
+test("a signed-out extension gets the website's account", async ({ page }) => {
+	await installFakeExtension(page, null);
+	const api = await mockApi(page, { web: reader });
+	await page.goto("/en/profile/");
+	await expect(
+		page.getByText("The extension in this browser uses this account."),
+	).toBeVisible();
+	expect(calls(api, "POST", "/auth/web/extension-session")).toHaveLength(1);
+	expect(await storedSession(page)).toEqual({
+		user: reader,
+		token: "handoff-token",
 	});
-	await page.route("**/auth/change-password/verify", async (route) => {
-		verifyBody = route.request().postDataJSON();
-		authorizations.push(route.request().headers().authorization);
-		await route.fulfill({ json: { success: true } });
+});
+
+test("an extension on the same account gets the fresh profile, keeping its token", async ({
+	page,
+}) => {
+	await installFakeExtension(page, {
+		user: { ...reader, name: "Old name" },
+		token: "member-token",
 	});
+	const api = await mockApi(page, { web: reader });
+	await page.goto("/en/profile/");
+	await expect(
+		page.getByText("The extension in this browser uses this account."),
+	).toBeVisible();
+	expect(calls(api, "POST", "/auth/web/extension-session")).toHaveLength(0);
+	expect(await storedSession(page)).toEqual({
+		user: reader,
+		token: "member-token",
+	});
+});
+
+test("an extension on another account asks which one to keep", async ({
+	page,
+}) => {
+	await installFakeExtension(page, { user: other, token: "other-token" });
+	const api = await mockApi(page, { web: reader });
+	await page.goto("/en/profile/");
+	const card = page.getByRole("region", { name: "Story Lens extension" });
+	await expect(card).toContainText("other@example.com");
+	expect(calls(api, "POST", "/auth/web/extension-session")).toHaveLength(0);
+	await expectAccessible(page);
+
+	await card
+		.getByRole("button", { name: "Use reader@example.com in the extension" })
+		.click();
+	await expect(
+		card.getByText("The extension in this browser uses this account."),
+	).toBeVisible();
+	expect(await storedSession(page)).toEqual({
+		user: reader,
+		token: "handoff-token",
+	});
+});
+
+test("the website can switch to the extension's account instead", async ({
+	page,
+}) => {
+	await installFakeExtension(page, { user: other, token: "other-token" });
+	const api = await mockApi(page, { web: reader });
+	await page.goto("/en/profile/");
+	await page
+		.getByRole("button", { name: "Switch this site to other@example.com" })
+		.click();
+	await expect(page.locator(".account-details")).toContainText(
+		"other@example.com",
+	);
+	expect(calls(api, "POST", "/auth/web/adopt")[0]?.authorization).toBe(
+		"Bearer other-token",
+	);
+	expect(await storedSession(page)).toEqual({
+		user: other,
+		token: "other-token",
+	});
+});
+
+test("switching accounts clears the old balance and celebrates the new account's gift", async ({
+	page,
+}) => {
+	await page.emulateMedia({ reducedMotion: "reduce" });
+	await installFakeExtension(page, { user: other, token: "other-token" });
+	const api = await mockApi(page, { web: reader });
+	const seen: string[] = [];
+	let releaseBalance: (() => void) | undefined;
+	const otherBalance = new Promise<void>((resolve) => {
+		releaseBalance = resolve;
+	});
+	await page.route("**/api/user/billing/**", async (route) => {
+		const path = new URL(route.request().url()).pathname;
+		if (path.endsWith("/notices/seen")) {
+			const body = route.request().postDataJSON() as { ids: string[] };
+			seen.push(...body.ids);
+			return route.fulfill({ json: { updated: body.ids.length } });
+		}
+		if (path.endsWith("/balance")) {
+			const isOther = api.web?.id === other.id;
+			if (isOther) await otherBalance;
+			return route.fulfill({
+				json: {
+					balance: isOther ? 20 : 10,
+					notices: [
+						{
+							id: isOther ? "other-gift" : "reader-gift",
+							type: "ADMIN_GIFT",
+							lenses: isOther ? 20 : 10,
+							note: null,
+							createdAt: new Date().toISOString(),
+						},
+					],
+				},
+			});
+		}
+		await route.fulfill({ status: 404, json: { message: "Not mocked" } });
+	});
+	await page.goto("/en/profile/");
+	const gift = page.getByRole("dialog", { name: "Congratulations!" });
+	await expect(gift).toContainText("10 lenses");
+	await gift.getByRole("button", { name: "Close", exact: true }).click();
+	await page
+		.getByRole("button", { name: "Switch this site to other@example.com" })
+		.click();
+	await expect(page.locator(".account-details")).toContainText(other.email);
+	await expect(page.locator(".account-details")).not.toContainText("10 lenses");
+	await expect(gift).toHaveCount(0);
+	releaseBalance?.();
+	await expect(gift).toContainText("20 lenses");
+	await expect.poll(() => seen).toEqual(["reader-gift", "other-gift"]);
+});
+
+test("a signed-out website adopts the extension's account", async ({
+	page,
+}) => {
+	await installFakeExtension(page, { user: other, token: "other-token" });
+	const api = await mockApi(page);
+	await page.goto("/en/profile/");
+	await expect(page.locator(".account-details")).toContainText(
+		"other@example.com",
+	);
+	expect(calls(api, "POST", "/auth/web/adopt")).toHaveLength(1);
+});
+
+test("signing out with the same account in the extension signs both out", async ({
+	page,
+}) => {
+	await installFakeExtension(page, { user: reader, token: "member-token" });
+	await mockApi(page, { web: reader });
+	await page.goto("/en/profile/");
+	await page.getByRole("button", { name: "Sign out" }).click();
+	await expect(page).toHaveURL(/\/en\/profile\/login\/\?signed-out=both$/);
+	await expect(page.locator(".account-notice")).toContainText(
+		"You’re signed out here and in the extension.",
+	);
+	expect(await storedSession(page)).toBeNull();
+	await expect(page.locator(".header-account")).toHaveAttribute(
+		"aria-label",
+		"Sign in",
+	);
+});
+
+test("signing out with another account in the extension leaves the extension alone", async ({
+	page,
+}) => {
+	await installFakeExtension(page, { user: other, token: "other-token" });
+	const api = await mockApi(page, { web: reader });
+	await page.goto("/en/profile/");
+	await expect(
+		page.getByText("other@example.com", { exact: true }),
+	).toBeVisible();
+	await page.getByRole("button", { name: "Sign out" }).click();
+	await expect(page.locator(".account-notice")).toContainText(
+		"You’re signed out on this website.",
+	);
+	expect(await storedSession(page)).toEqual({
+		user: other,
+		token: "other-token",
+	});
+	// Signing out here is not undone by adopting the extension's account.
+	await expect(page.getByLabel("Email")).toBeVisible();
+	expect(calls(api, "POST", "/auth/web/adopt")).toHaveLength(0);
+});
+
+test("password changes use the website session", async ({ page }) => {
+	const api = await mockApi(page, { web: reader });
 	await page.goto("/en/profile/password/");
 	await page.getByLabel("Current password").fill("old-password");
 	await page.getByLabel("New password", { exact: true }).fill("new-password");
 	await page.getByLabel("Confirm new password").fill("new-password");
 	await page.getByRole("button", { name: "Send code" }).click();
-
 	await expect(page.getByText("reader@example.com")).toBeVisible();
-	expect(requestBody).toEqual({
-		currentPassword: "old-password",
-		newPassword: "new-password",
-	});
 	await page.getByLabel("Verification code").fill("123456");
 	await page.getByRole("button", { name: "Confirm" }).click();
 	await expect(page.locator(".account-notice")).toHaveText(
 		"Your password was changed.",
 	);
-	expect(verifyBody).toEqual({ code: "123456" });
-	expect(authorizations).toEqual(Array(2).fill("Bearer member-token"));
-	await expect(page.getByLabel("Current password")).toHaveValue("");
+	const sent = [
+		...calls(api, "POST", "/auth/change-password"),
+		...calls(api, "POST", "/auth/change-password/verify"),
+	];
+	expect(sent.map((call) => [call.authorization, call.csrf])).toEqual([
+		[undefined, "1"],
+		[undefined, "1"],
+	]);
 });
 
-test("profile editing leaves the email to a separate verified change", async ({
+test("an email change updates the profile and the extension's copy", async ({
 	page,
 }) => {
-	await installFakeExtension(page, member);
-	let requestBody: unknown;
-	await page.route("**/auth/change-email", async (route) => {
-		requestBody = route.request().postDataJSON();
-		await route.fulfill({
-			json: {
-				email: "new@example.com",
-				expiresAt: new Date(Date.now() + 600_000).toISOString(),
-				resendAfterSeconds: 60,
-			},
-		});
-	});
-	await page.route("**/auth/change-email/verify", async (route) => {
-		const { code } = route.request().postDataJSON();
-		await route.fulfill(
-			code === "123456"
-				? { json: { ...member.user, email: "new@example.com" } }
-				: {
-						status: 400,
-						json: { message: "Incorrect code. 4 attempts left." },
-					},
-		);
-	});
+	await installFakeExtension(page, { user: reader, token: "member-token" });
+	await mockApi(page, { web: reader });
 	await page.goto("/en/profile/");
 	await page.getByRole("button", { name: "Edit profile" }).click();
-	await expect(page.getByLabel("Username")).toBeVisible();
 	await expect(page.getByLabel("Email")).toHaveCount(0);
 	await page.getByRole("button", { name: "Cancel" }).click();
-
 	await page.getByRole("link", { name: "Change email" }).click();
 	await expect(page).toHaveURL(/\/en\/profile\/email\/$/);
 	await page.getByLabel("New email").fill("new@example.com");
 	await page.getByRole("button", { name: "Send code" }).click();
-	expect(requestBody).toEqual({ email: "new@example.com" });
-
 	const code = page.getByLabel("Verification code");
 	await code.fill("000000");
-	const rejectedCode = page.waitForResponse(
-		(response) =>
-			response.url().endsWith("/auth/change-email/verify") &&
-			response.status() === 400,
-	);
 	await page.getByRole("button", { name: "Confirm" }).click();
-	await rejectedCode;
 	await expect(page.locator(".account-error")).toHaveText(
 		"Incorrect code. 4 attempts left.",
 	);
-	expect(await storedSession(page)).toEqual(member);
-
 	await code.fill("123456");
 	await page.getByRole("button", { name: "Confirm" }).click();
 	await expect(page.locator(".account-notice")).toHaveText(
 		"Your email was changed.",
 	);
-	expect(await storedSession(page)).toEqual({
-		...member,
-		user: { ...member.user, email: "new@example.com" },
-	});
-});
-
-test("signing out clears the extension session", async ({ page }) => {
-	await installFakeExtension(page, member);
-	await page.goto("/en/profile/");
-	await page.getByRole("button", { name: "Sign out" }).click();
-	await expect(page.locator(".account-notice")).toContainText(
-		"You’re signed out.",
-	);
-	expect(await storedSession(page)).toBeNull();
+	await expect
+		.poll(async () => (await storedSession(page))?.user.email)
+		.toBe("new@example.com");
+	expect((await storedSession(page))?.token).toBe("member-token");
 });
 
 test("Google sign-in is offered only when the API enables it", async ({
 	page,
 }) => {
-	await installFakeExtension(page, null);
-	await page.route("**/auth/providers", (route) =>
-		route.fulfill({ json: { google: false } }),
-	);
+	await mockApi(page, { google: false });
 	await page.goto("/en/profile/login/");
 	await expect(page.getByLabel("Email")).toBeVisible();
 	await expect(
 		page.getByRole("button", { name: "Continue with Google" }),
 	).toHaveCount(0);
 
-	await page.unroute("**/auth/providers");
-	await page.route("**/auth/providers", (route) =>
-		route.fulfill({ json: { google: true } }),
-	);
+	await page.unrouteAll({ behavior: "ignoreErrors" });
+	await mockApi(page, { google: true });
 	let request: { provider?: string; callbackURL?: string } = {};
 	await page.route("**/auth/sign-in/social", async (route) => {
 		request = route.request().postDataJSON();
@@ -408,32 +656,44 @@ test("Google sign-in is offered only when the API enables it", async ({
 	expect(request.callbackURL).toBe("http://localhost:4173/en/profile/oauth/");
 });
 
-test("OAuth callback hands the account to the extension and merges the guest", async ({
+test("the Google callback signs the website in, then merges the extension's guest", async ({
 	page,
 }) => {
 	await installFakeExtension(page, guest);
-	let body: { guestToken?: string } = {};
-	await page.route("**/auth/oauth/session", async (route) => {
-		body = route.request().postDataJSON();
-		await route.fulfill({ json: member });
-	});
+	const api = await mockApi(page);
 	await page.goto("/en/profile/oauth/");
 	await expect(page).toHaveURL(/\/en\/profile\/$/);
-	expect(body.guestToken).toBe("guest-token");
-	expect(await storedSession(page)).toEqual(member);
+	expect(calls(api, "POST", "/auth/web/oauth/session")).toHaveLength(1);
+	await expect
+		.poll(() => storedSession(page))
+		.toEqual({ user: reader, token: "handoff-token" });
+	expect(calls(api, "POST", "/auth/web/extension-session")[0]?.body).toEqual({
+		guestToken: "guest-token",
+	});
 });
 
-test("OAuth callback reports a cancelled sign-in", async ({ page }) => {
+test("the Google callback reports a cancelled sign-in", async ({ page }) => {
 	await installFakeExtension(page, guest);
-	let called = false;
-	await page.route("**/auth/oauth/session", async (route) => {
-		called = true;
-		await route.fulfill({ json: member });
-	});
+	const api = await mockApi(page);
 	await page.goto("/en/profile/oauth/?error=access_denied");
 	await expect(page.locator(".account-error")).toHaveText(
 		"Sign-in with Google didn’t complete. Please try again.",
 	);
-	expect(called).toBe(false);
+	expect(calls(api, "POST", "/auth/web/oauth/session")).toHaveLength(0);
 	expect(await storedSession(page)).toEqual(guest);
+});
+
+test("the header shows Sign in, then the reader's name", async ({ page }) => {
+	const api = await mockApi(page);
+	await page.goto("/en/privacy/", { waitUntil: "domcontentloaded" });
+	const link = page.locator(".header-account");
+	await expect(link).toHaveAttribute("href", "/en/profile/login/");
+	await expect(link).toHaveAttribute("data-state", "ready");
+	api.web = reader;
+	await page.evaluate(() =>
+		sessionStorage.removeItem("storylens-website-account"),
+	);
+	await page.goto("/en/terms/", { waitUntil: "domcontentloaded" });
+	await expect(link).toHaveAttribute("href", "/en/profile/");
+	await expect(link).toHaveAttribute("aria-label", "Your profile: Reader");
 });

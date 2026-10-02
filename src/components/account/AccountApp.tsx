@@ -9,22 +9,29 @@ import {
 	useRef,
 	useState,
 } from "react";
+import { BalancePage } from "@/components/billing/BalancePage";
+import { GiftCelebration } from "@/components/billing/GiftCelebration";
+import { LensPrice } from "@/components/billing/LensPrice";
 import { getMessages, type Messages } from "@/i18n/messages";
 import {
 	AccountApiError,
+	adoptExtensionSession,
 	type CodeChallenge,
 	changeEmail,
 	changePassword,
-	completeOAuth,
+	createExtensionSession,
 	getProviders,
-	login,
+	getWebMe,
 	type RegistrationValues,
 	register,
 	startGoogleSignIn,
 	updateProfile,
 	verifyEmailChange,
 	verifyPasswordChange,
-	verifyRegistration,
+	webCompleteOAuth,
+	webLogin,
+	webLogout,
+	webVerifyRegistration,
 } from "@/lib/account/api";
 import {
 	type AccountSession,
@@ -32,7 +39,16 @@ import {
 	requestSession,
 	subscribeSession,
 } from "@/lib/account/bridge";
+import { writeHeaderAccount } from "@/lib/account/header-state";
+import {
+	type BridgeState,
+	type Decision,
+	decide,
+	safeNext,
+	type WebState,
+} from "@/lib/account/reconcile";
 import { trackEvent } from "@/lib/analytics";
+import { getBalance, type Notice as LensNotice } from "@/lib/billing/api";
 import { type Locale, siteConfig } from "@/lib/site-config";
 
 export type AccountView =
@@ -41,8 +57,20 @@ export type AccountView =
 	| "register"
 	| "password"
 	| "email"
-	| "oauth";
+	| "oauth"
+	| "balance";
 type Copy = Messages["account"];
+type Notice = { tone: "success" | "error"; text: string } | null;
+
+/** Views that need a signed-in website; signed out, they send the reader to sign in. */
+const PROTECTED: AccountView[] = ["profile", "password", "email", "balance"];
+/** Decisions the page carries out by itself, once per state pair. */
+const AUTOMATIC: Decision[] = [
+	"hand-off",
+	"hand-off-merging-guest",
+	"refresh-extension-user",
+	"adopt",
+];
 
 /** Localized name of a system role; custom roles show their own name. */
 function roleLabel(roles: Copy["roles"], user: AccountUser): string {
@@ -50,11 +78,6 @@ function roleLabel(roles: Copy["roles"], user: AccountUser): string {
 	if (slug && slug in roles) return roles[slug as keyof Copy["roles"]];
 	return user.role?.name ?? roles.reader;
 }
-type Bridge =
-	| { status: "detecting" }
-	| { status: "missing" }
-	| { status: "ready"; session: AccountSession | null };
-type Notice = { tone: "success" | "error"; text: string } | null;
 
 function errorText(error: unknown, fallback: string): string {
 	return error instanceof AccountApiError && error.message
@@ -67,6 +90,32 @@ function field(form: FormData, name: string): string {
 	return typeof value === "string" ? value : "";
 }
 
+// After the reader signs out here, an extension holding another account must
+// not sign the website straight back in. A flag only, never a token.
+const SIGNED_OUT_KEY = "storylens-website-signed-out";
+function signedOutHere(): boolean {
+	try {
+		return sessionStorage.getItem(SIGNED_OUT_KEY) === "1";
+	} catch {
+		return false;
+	}
+}
+function rememberSignedOut(value: boolean): void {
+	try {
+		if (value) sessionStorage.setItem(SIGNED_OUT_KEY, "1");
+		else sessionStorage.removeItem(SIGNED_OUT_KEY);
+	} catch {
+		// Storage can be blocked; adopting again is the only effect.
+	}
+}
+
+function fill(text: string, values: Record<string, string>): string {
+	return text.replace(
+		/\{(\w+)\}/g,
+		(match, key: string) => values[key] ?? match,
+	);
+}
+
 export function AccountApp({
 	locale,
 	view,
@@ -74,10 +123,74 @@ export function AccountApp({
 	locale: Locale;
 	view: AccountView;
 }) {
-	const copy = getMessages(locale).account;
-	const [bridge, setBridge] = useState<Bridge>({ status: "detecting" });
+	const messages = getMessages(locale);
+	const copy = messages.account;
+	const [web, setWeb] = useState<WebState>({ status: "loading" });
+	const [lenses, setLenses] = useState<{
+		userId: string;
+		balance: number;
+		notices: LensNotice[];
+	} | null>(null);
+	const [bridge, setBridge] = useState<BridgeState>({ status: "detecting" });
 	const [notice, setNotice] = useState<Notice>(null);
+	// The page is static, so the sign-out notice is read after hydration.
+	useEffect(() => {
+		const out = new URLSearchParams(window.location.search).get("signed-out");
+		if (out === "both") setNotice({ tone: "success", text: copy.signedOut });
+		if (out === "website")
+			setNotice({ tone: "success", text: copy.signedOutWebsiteOnly });
+	}, [copy.signedOut, copy.signedOutWebsiteOnly]);
+	const [linking, setLinking] = useState(false);
+	const [linkFailed, setLinkFailed] = useState(false);
+	// Signing out navigates by itself; the sign-in redirect must not race it.
+	const [leaving, setLeaving] = useState(false);
+	const leavingRef = useRef(false);
 	const base = `/${locale}/profile/`;
+	const handled = useRef(new Set<string>());
+
+	const refreshWeb = useCallback(async () => {
+		try {
+			const user = await getWebMe(locale);
+			setWeb(user ? { status: "signed-in", user } : { status: "signed-out" });
+			return user;
+		} catch {
+			setWeb({ status: "signed-out" });
+			return null;
+		}
+	}, [locale]);
+
+	useEffect(() => {
+		void refreshWeb();
+	}, [refreshWeb]);
+
+	// The balance (and unseen gifts or purchases) for the signed-in reader.
+	const signedInId = web.status === "signed-in" ? web.user.id : null;
+	const accountLenses = lenses?.userId === signedInId ? lenses : null;
+	useEffect(() => {
+		if (!signedInId || (view !== "profile" && view !== "balance")) return;
+		let active = true;
+		getBalance(locale)
+			.then((result) => active && setLenses({ ...result, userId: signedInId }))
+			.catch(() => active && setLenses(null));
+		return () => {
+			active = false;
+		};
+	}, [signedInId, view, locale]);
+	const showTopUp = useCallback(
+		(text: string) => setNotice({ tone: "success", text }),
+		[],
+	);
+
+	// The header's account link follows the session.
+	useEffect(() => {
+		if (web.status === "signed-in")
+			writeHeaderAccount({
+				signedIn: true,
+				name: web.user.name || web.user.username,
+			});
+		else if (web.status === "signed-out")
+			writeHeaderAccount({ signedIn: false });
+	}, [web]);
 
 	useEffect(() => {
 		let active = true;
@@ -98,7 +211,7 @@ export function AccountApp({
 		};
 	}, []);
 
-	// Persists a session in the extension, then reflects what it stored.
+	// Stores a session in the extension, then reflects what it holds.
 	const saveSession = useCallback(
 		async (session: AccountSession | null): Promise<boolean> => {
 			const stored = await requestSession(
@@ -114,6 +227,57 @@ export function AccountApp({
 		[],
 	);
 
+	const [stayOut, setStayOut] = useState(false);
+	useEffect(() => setStayOut(signedOutHere()), []);
+	const decided = decide(web, bridge);
+	const decision: Decision =
+		decided === "adopt" && stayOut ? "show-forms" : decided;
+	const held = bridge.status === "ready" ? bridge.session : null;
+
+	// Keeps the extension on the website's account (or the website on the
+	// extension's), at most once per state pair so a failing call cannot loop.
+	useEffect(() => {
+		if (leavingRef.current || !AUTOMATIC.includes(decision)) return;
+		const key = [
+			decision,
+			web.status === "signed-in" ? JSON.stringify(web.user) : web.status,
+			held ? JSON.stringify(held) : "none",
+		].join("|");
+		if (handled.current.has(key)) return;
+		handled.current.add(key);
+		setLinking(true);
+		setLinkFailed(false);
+		const run = async () => {
+			if (decision === "adopt" && held) {
+				const { user } = await adoptExtensionSession(locale, held.token);
+				if (!leavingRef.current) setWeb({ status: "signed-in", user });
+			} else if (decision === "refresh-extension-user" && held) {
+				if (!leavingRef.current && web.status === "signed-in")
+					await saveSession({ user: web.user, token: held.token });
+			} else {
+				const guestToken =
+					decision === "hand-off-merging-guest" ? held?.token : undefined;
+				const session = await createExtensionSession(locale, guestToken);
+				if (!leavingRef.current) await saveSession(session);
+			}
+		};
+		run()
+			.catch(() => setLinkFailed(true))
+			.finally(() => setLinking(false));
+	}, [decision, web, held, locale, saveSession]);
+
+	const next = () => {
+		rememberSignedOut(false);
+		const target =
+			typeof window === "undefined"
+				? null
+				: safeNext(
+						new URLSearchParams(window.location.search).get("next"),
+						locale,
+					);
+		window.location.assign(target ?? base);
+	};
+
 	const titles: Record<AccountView, string> = {
 		profile: copy.title,
 		login: copy.loginTitle,
@@ -121,36 +285,58 @@ export function AccountApp({
 		password: copy.passwordTitle,
 		email: copy.emailTitle,
 		oauth: copy.oauthTitle,
+		balance: messages.billing.balanceTitle,
 	};
 
+	// Signed out, protected pages wait for an extension account to adopt, then send the reader to sign in.
+	const mustSignIn =
+		!leaving &&
+		PROTECTED.includes(view) &&
+		(decision === "show-forms" || (decision === "adopt" && linkFailed));
+	useEffect(() => {
+		if (!mustSignIn) return;
+		const target = `${base}${view === "profile" ? "" : `${view}/`}`;
+		window.location.replace(`${base}login/?next=${encodeURIComponent(target)}`);
+	}, [mustSignIn, base, view]);
+
+	const guest = held?.user.isGuest ? held : null;
 	let content: ReactNode;
-	if (bridge.status === "detecting") {
+	if (view === "oauth") {
+		content = (
+			<OAuthCallback
+				copy={copy}
+				locale={locale}
+				base={base}
+				onSuccess={() => window.location.replace(base)}
+			/>
+		);
+	} else if (
+		web.status === "loading" ||
+		bridge.status === "detecting" ||
+		mustSignIn ||
+		(web.status === "signed-out" && decision === "adopt" && !linkFailed)
+	) {
 		content = (
 			<p className="account-status" aria-busy="true">
-				{copy.detecting}
+				{copy.loading}
 			</p>
 		);
-	} else if (bridge.status === "missing") {
-		content = <MissingExtension copy={copy} />;
-	} else {
-		const { session } = bridge;
-		const member = session && !session.user.isGuest ? session : null;
-		const goToProfile = () => window.location.assign(base);
-		if (view === "oauth") {
-			content = (
-				<OAuthCallback
-					copy={copy}
-					locale={locale}
-					base={base}
-					guest={session?.user.isGuest ? session : null}
-					onSuccess={async (next) => {
-						if (await saveSession(next)) window.location.replace(base);
-					}}
-				/>
-			);
-		} else if (view === "login") {
-			content = member ? (
-				<SignedIn copy={copy} session={member} base={base} />
+	} else if (web.status === "signed-out") {
+		content =
+			view === "register" ? (
+				<>
+					<GoogleSignIn copy={copy} locale={locale} />
+					<RegisterForm
+						copy={copy}
+						locale={locale}
+						base={base}
+						guest={guest}
+						onSuccess={async () => {
+							if (await refreshWeb()) next();
+							else throw new AccountApiError(0, copy.cookiesBlocked);
+						}}
+					/>
+				</>
 			) : (
 				<>
 					<GoogleSignIn copy={copy} locale={locale} />
@@ -158,73 +344,107 @@ export function AccountApp({
 						copy={copy}
 						locale={locale}
 						base={base}
-						onSuccess={async (next) => {
-							if (await saveSession(next)) goToProfile();
+						onSuccess={async () => {
+							if (await refreshWeb()) next();
+							else throw new AccountApiError(0, copy.cookiesBlocked);
 						}}
 					/>
 				</>
 			);
-		} else if (view === "register") {
-			content = member ? (
-				<SignedIn copy={copy} session={member} base={base} />
-			) : (
-				<>
-					<GoogleSignIn copy={copy} locale={locale} />
-					<RegisterForm
-						copy={copy}
-						locale={locale}
-						base={base}
-						guest={session}
-						onSuccess={async (next) => {
-							if (await saveSession(next)) goToProfile();
-						}}
-					/>
-				</>
-			);
-		} else if (view === "password" || view === "email") {
-			content = member ? (
-				view === "password" ? (
-					<PasswordForm
-						copy={copy}
-						locale={locale}
-						base={base}
-						session={member}
-						onNotice={setNotice}
-					/>
-				) : (
-					<EmailForm
-						copy={copy}
-						locale={locale}
-						base={base}
-						session={member}
-						onNotice={setNotice}
-						onSaved={saveSession}
-					/>
-				)
-			) : (
-				<>
-					<p>
-						{view === "password"
-							? copy.signInRequired
-							: copy.emailSignInRequired}
-					</p>
-					<div className="actions">
-						<a className="button" href={`${base}login/`}>
-							{copy.login}
-						</a>
-					</div>
-				</>
-			);
-		} else {
+	} else {
+		const { user } = web;
+		if (view === "login" || view === "register") {
+			content = <SignedIn copy={copy} user={user} base={base} />;
+		} else if (view === "password") {
 			content = (
-				<Profile
+				<PasswordForm
 					copy={copy}
 					locale={locale}
 					base={base}
-					session={session}
+					user={user}
 					onNotice={setNotice}
-					onSaved={saveSession}
 				/>
+			);
+		} else if (view === "balance") {
+			content = (
+				<BalancePage
+					key={user.id}
+					locale={locale}
+					balance={accountLenses?.balance ?? null}
+					extensionMissing={bridge.status === "missing"}
+				/>
+			);
+		} else if (view === "email") {
+			content = (
+				<EmailForm
+					copy={copy}
+					locale={locale}
+					base={base}
+					user={user}
+					onNotice={setNotice}
+					onSaved={(updated) => setWeb({ status: "signed-in", user: updated })}
+				/>
+			);
+		} else {
+			content = (
+				<>
+					<Profile
+						copy={copy}
+						locale={locale}
+						base={base}
+						user={user}
+						balance={accountLenses?.balance ?? null}
+						onNotice={setNotice}
+						onSaved={(updated) =>
+							setWeb({ status: "signed-in", user: updated })
+						}
+						onSignOut={async () => {
+							leavingRef.current = true;
+							setLeaving(true);
+							try {
+								await webLogout(locale);
+							} catch (error) {
+								leavingRef.current = false;
+								setLeaving(false);
+								throw error;
+							}
+							// Signed out first, so nothing hands the account back or adopts another.
+							rememberSignedOut(true);
+							setLeaving(true);
+							setStayOut(true);
+							setWeb({ status: "signed-out" });
+							// The extension signs out with the website only when it holds the same account.
+							const same =
+								held && !held.user.isGuest && held.user.id === user.id;
+							if (same) await saveSession(null);
+							window.location.assign(
+								`${base}login/?signed-out=${same ? "both" : "website"}`,
+							);
+						}}
+					/>
+					<ExtensionStatus
+						copy={copy}
+						locale={locale}
+						user={user}
+						decision={decision}
+						held={held}
+						linking={linking}
+						failed={linkFailed}
+						onUseWebsiteAccount={async () => {
+							await saveSession(await createExtensionSession(locale));
+						}}
+						onUseExtensionAccount={async () => {
+							if (!held) return;
+							const { user: adopted } = await adoptExtensionSession(
+								locale,
+								held.token,
+							);
+							rememberSignedOut(false);
+							setNotice(null);
+							setWeb({ status: "signed-in", user: adopted });
+						}}
+					/>
+				</>
 			);
 		}
 	}
@@ -241,6 +461,31 @@ export function AccountApp({
 				<p>{copy.intro}</p>
 			</header>
 			<div className="account-card">
+				{web.status === "signed-in" &&
+					(view === "profile" || view === "balance") && (
+						<nav className="account-tabs" aria-label={copy.title}>
+							<a
+								href={base}
+								aria-current={view === "profile" ? "page" : undefined}
+							>
+								{messages.billing.navProfile}
+							</a>
+							<a
+								href={`${base}balance/`}
+								aria-current={view === "balance" ? "page" : undefined}
+							>
+								{messages.billing.navBalance}
+							</a>
+						</nav>
+					)}
+				{accountLenses && accountLenses.notices.length > 0 && (
+					<GiftCelebration
+						key={signedInId}
+						locale={locale}
+						notices={accountLenses.notices}
+						onTopUp={showTopUp}
+					/>
+				)}
 				<output
 					className={`account-notice${notice ? ` ${notice.tone}` : ""}`}
 					aria-live="polite"
@@ -254,31 +499,111 @@ export function AccountApp({
 	);
 }
 
-function MissingExtension({ copy }: { copy: Copy }) {
+/**
+ * Where the extension stands next to the website's account: not installed,
+ * on this account, being connected, or on another account (the reader picks).
+ */
+function ExtensionStatus({
+	copy,
+	locale,
+	user,
+	decision,
+	held,
+	linking,
+	failed,
+	onUseWebsiteAccount,
+	onUseExtensionAccount,
+}: {
+	copy: Copy;
+	locale: Locale;
+	user: AccountUser;
+	decision: Decision;
+	held: AccountSession | null;
+	linking: boolean;
+	failed: boolean;
+	onUseWebsiteAccount: () => Promise<void>;
+	onUseExtensionAccount: () => Promise<void>;
+}) {
+	const [busy, setBusy] = useState(false);
+	const [error, setError] = useState("");
+	const choose = async (action: () => Promise<void>) => {
+		setBusy(true);
+		setError("");
+		try {
+			await action();
+		} catch (caught) {
+			setError(errorText(caught, copy.requestFailed));
+		} finally {
+			setBusy(false);
+		}
+	};
+
+	let body: ReactNode;
+	if (decision === "offer-install") {
+		body = (
+			<>
+				<p>{copy.installBody}</p>
+				<div className="actions">
+					<a
+						className="button"
+						href={siteConfig.chrome}
+						rel="noopener"
+						data-analytics-cta="profile"
+					>
+						{copy.missingInstall}
+						<span aria-hidden="true">↗</span>
+					</a>
+				</div>
+			</>
+		);
+	} else if (decision === "ask-which-account" && held) {
+		body = (
+			<>
+				<p>
+					{copy.otherAccountBody} <strong dir="ltr">{held.user.email}</strong>.
+				</p>
+				<div className="actions">
+					<button
+						type="button"
+						className="button"
+						disabled={busy}
+						onClick={() => void choose(onUseWebsiteAccount)}
+						title={fill(copy.useWebsiteAccount, { email: user.email })}
+					>
+						{fill(copy.useWebsiteAccount, { email: user.email })}
+					</button>
+					<button
+						type="button"
+						className="text-link"
+						disabled={busy}
+						onClick={() => void choose(onUseExtensionAccount)}
+						title={fill(copy.useExtensionAccount, { email: held.user.email })}
+					>
+						{fill(copy.useExtensionAccount, { email: held.user.email })}
+					</button>
+				</div>
+			</>
+		);
+	} else if (failed) {
+		body = <p className="account-error">{copy.linkFailed}</p>;
+	} else if (linking || decision !== "none") {
+		body = (
+			<p className="account-status" aria-busy="true">
+				{copy.extensionConnecting}
+			</p>
+		);
+	} else {
+		body = <p>{copy.extensionConnected}</p>;
+	}
 	return (
-		<>
-			<h2>{copy.missingTitle}</h2>
-			<p>{copy.missingBody}</p>
-			<div className="actions">
-				<a
-					className="button"
-					href={siteConfig.chrome}
-					rel="noopener"
-					data-analytics-cta="account"
-				>
-					{copy.missingInstall}
-					<span aria-hidden="true">↗</span>
-				</a>
-				<button
-					type="button"
-					className="text-link"
-					onClick={() => window.location.reload()}
-					title={copy.reload}
-				>
-					{copy.reload}
-				</button>
-			</div>
-		</>
+		<section
+			className="account-extension"
+			aria-labelledby={`extension-${locale}`}
+		>
+			<h2 id={`extension-${locale}`}>{copy.extensionTitle}</h2>
+			{body}
+			<FormError text={error} />
+		</section>
 	);
 }
 
@@ -331,17 +656,16 @@ function OAuthCallback({
 	copy,
 	locale,
 	base,
-	guest,
 	onSuccess,
 }: {
 	copy: Copy;
 	locale: Locale;
 	base: string;
-	guest: AccountSession | null;
-	onSuccess: (session: AccountSession) => Promise<void>;
+	onSuccess: () => void;
 }) {
 	const [error, setError] = useState("");
-	// The exchange ends the API cookie session, so it must run only once.
+	// The exchange ends the API's OAuth cookie, so it must run only once. The
+	// profile page then hands the account to the extension, merging its guest.
 	const started = useRef(false);
 	useEffect(() => {
 		if (started.current) return;
@@ -350,15 +674,15 @@ function OAuthCallback({
 			setError(copy.oauthFailed);
 			return;
 		}
-		completeOAuth(locale, guest?.token)
-			.then((session) => {
+		webCompleteOAuth(locale)
+			.then(() => {
 				trackEvent("login", { method: "google" });
-				return onSuccess(session);
+				onSuccess();
 			})
 			.catch((caught: unknown) =>
 				setError(errorText(caught, copy.oauthFailed)),
 			);
-	}, [copy.oauthFailed, guest, locale, onSuccess]);
+	}, [copy.oauthFailed, locale, onSuccess]);
 	if (!error) {
 		return (
 			<p className="account-status" aria-busy="true">
@@ -380,17 +704,17 @@ function OAuthCallback({
 
 function SignedIn({
 	copy,
-	session,
+	user,
 	base,
 }: {
 	copy: Copy;
-	session: AccountSession;
+	user: AccountUser;
 	base: string;
 }) {
 	return (
 		<>
 			<p>
-				{copy.alreadySignedIn} <strong>{session.user.email}</strong>.
+				{copy.alreadySignedIn} <strong>{user.email}</strong>.
 			</p>
 			<div className="actions">
 				<a className="button" href={base}>
@@ -444,7 +768,7 @@ function LoginForm({
 	copy: Copy;
 	locale: Locale;
 	base: string;
-	onSuccess: (session: AccountSession) => Promise<void>;
+	onSuccess: () => Promise<void>;
 }) {
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
@@ -454,12 +778,12 @@ function LoginForm({
 		setBusy(true);
 		setError("");
 		try {
-			const session = await login(locale, {
+			await webLogin(locale, {
 				email: field(form, "email").trim(),
 				password: field(form, "password"),
 			});
 			trackEvent("login", { method: "email" });
-			await onSuccess(session);
+			await onSuccess();
 		} catch (caught) {
 			setError(
 				caught instanceof AccountApiError && caught.status === 401
@@ -513,7 +837,7 @@ function RegisterForm({
 	locale: Locale;
 	base: string;
 	guest: AccountSession | null;
-	onSuccess: (session: AccountSession) => Promise<void>;
+	onSuccess: () => Promise<void>;
 }) {
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
@@ -523,7 +847,7 @@ function RegisterForm({
 	const [draft, setDraft] = useState<RegistrationValues | null>(null);
 	const [resendAt, setResendAt] = useState(0);
 
-	// A guest token upgrades the guest in place, keeping its data.
+	// The extension's guest token upgrades that guest in place, keeping its data.
 	async function requestCode(values: RegistrationValues) {
 		const challenge = await register(locale, values, guest?.token);
 		setPending({ ...values, email: challenge.email });
@@ -564,13 +888,13 @@ function RegisterForm({
 					setPending(null);
 				}}
 				onVerify={async (code) => {
-					const session = await verifyRegistration(
+					await webVerifyRegistration(
 						locale,
 						{ email: pending.email, code },
 						guest?.token,
 					);
 					trackEvent("sign_up", { method: guest ? "guest_upgrade" : "email" });
-					await onSuccess(session);
+					await onSuccess();
 				}}
 			/>
 		);
@@ -757,13 +1081,13 @@ function PasswordForm({
 	copy,
 	locale,
 	base,
-	session,
+	user,
 	onNotice,
 }: {
 	copy: Copy;
 	locale: Locale;
 	base: string;
-	session: AccountSession;
+	user: AccountUser;
 	onNotice: (notice: Notice) => void;
 }) {
 	const [busy, setBusy] = useState(false);
@@ -774,7 +1098,7 @@ function PasswordForm({
 	const [resendAt, setResendAt] = useState(0);
 
 	async function requestCode(values: PasswordChange) {
-		const next = await changePassword(locale, session.token, values);
+		const next = await changePassword(locale, values);
 		setPending(values);
 		setChallenge(next);
 		setResendAt(Date.now() + next.resendAfterSeconds * 1000);
@@ -817,7 +1141,7 @@ function PasswordForm({
 					setChallenge(null);
 				}}
 				onVerify={async (code) => {
-					await verifyPasswordChange(locale, session.token, { code });
+					await verifyPasswordChange(locale, { code });
 					setPending(null);
 					setChallenge(null);
 					onNotice({ tone: "success", text: copy.passwordChanged });
@@ -833,7 +1157,7 @@ function PasswordForm({
 				type="email"
 				name="email"
 				autoComplete="username"
-				value={session.user.email}
+				value={user.email}
 				readOnly
 				hidden
 			/>
@@ -885,16 +1209,16 @@ function EmailForm({
 	copy,
 	locale,
 	base,
-	session,
+	user,
 	onNotice,
 	onSaved,
 }: {
 	copy: Copy;
 	locale: Locale;
 	base: string;
-	session: AccountSession;
+	user: AccountUser;
 	onNotice: (notice: Notice) => void;
-	onSaved: (session: AccountSession | null) => Promise<boolean>;
+	onSaved: (user: AccountUser) => void;
 }) {
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
@@ -904,7 +1228,7 @@ function EmailForm({
 	const [resendAt, setResendAt] = useState(0);
 
 	async function requestCode(email: string) {
-		const challenge = await changeEmail(locale, session.token, { email });
+		const challenge = await changeEmail(locale, { email });
 		setPending(challenge.email);
 		setResendAt(Date.now() + challenge.resendAfterSeconds * 1000);
 	}
@@ -938,14 +1262,11 @@ function EmailForm({
 					setPending(null);
 				}}
 				onVerify={async (code) => {
-					const user = await verifyEmailChange(locale, session.token, {
-						code,
-					});
-					if (await onSaved({ user, token: session.token })) {
-						setDraft("");
-						setPending(null);
-						onNotice({ tone: "success", text: copy.emailChanged });
-					}
+					// The extension's copy refreshes through reconciliation.
+					onSaved(await verifyEmailChange(locale, { code }));
+					setDraft("");
+					setPending(null);
+					onNotice({ tone: "success", text: copy.emailChanged });
 				}}
 			/>
 		);
@@ -956,7 +1277,7 @@ function EmailForm({
 			<dl className="account-details">
 				<div>
 					<dt>{copy.currentEmail}</dt>
-					<dd dir="ltr">{session.user.email}</dd>
+					<dd dir="ltr">{user.email}</dd>
 				</div>
 			</dl>
 			<TextField
@@ -991,51 +1312,24 @@ function Profile({
 	copy,
 	locale,
 	base,
-	session,
+	user,
+	balance,
 	onNotice,
 	onSaved,
+	onSignOut,
 }: {
 	copy: Copy;
 	locale: Locale;
 	base: string;
-	session: AccountSession | null;
+	user: AccountUser;
+	balance: number | null;
 	onNotice: (notice: Notice) => void;
-	onSaved: (session: AccountSession | null) => Promise<boolean>;
+	onSaved: (user: AccountUser) => void;
+	onSignOut: () => Promise<void>;
 }) {
 	const [editing, setEditing] = useState(false);
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
-
-	if (!session || session.user.isGuest) {
-		return (
-			<>
-				{session && (
-					<dl className="account-details">
-						<div>
-							<dt>{copy.username}</dt>
-							<dd>{session.user.username}</dd>
-						</div>
-						<div>
-							<dt>{copy.role}</dt>
-							<dd>{copy.roles.guest}</dd>
-						</div>
-					</dl>
-				)}
-				<h2>{session ? copy.guestTitle : copy.loginTitle}</h2>
-				<p>{session ? copy.guestBody : copy.noSessionBody}</p>
-				<div className="actions">
-					<a className="button" href={`${base}register/`}>
-						{copy.register}
-					</a>
-					<a className="text-link" href={`${base}login/`}>
-						{copy.login}
-					</a>
-				</div>
-			</>
-		);
-	}
-
-	const { user, token } = session;
 
 	async function save(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -1043,14 +1337,14 @@ function Profile({
 		setBusy(true);
 		setError("");
 		try {
-			const updated = await updateProfile(locale, token, {
-				username: field(form, "username").trim(),
-				name: field(form, "name").trim(),
-			});
-			if (await onSaved({ user: updated, token })) {
-				setEditing(false);
-				onNotice({ tone: "success", text: copy.profileUpdated });
-			}
+			onSaved(
+				await updateProfile(locale, {
+					username: field(form, "username").trim(),
+					name: field(form, "name").trim(),
+				}),
+			);
+			setEditing(false);
+			onNotice({ tone: "success", text: copy.profileUpdated });
 		} catch (caught) {
 			setError(errorText(caught, copy.requestFailed));
 		} finally {
@@ -1059,8 +1353,15 @@ function Profile({
 	}
 
 	async function signOut() {
-		if (await onSaved(null)) {
-			onNotice({ tone: "success", text: copy.signedOut });
+		setBusy(true);
+		try {
+			await onSignOut();
+		} catch (caught) {
+			onNotice({
+				tone: "error",
+				text: errorText(caught, copy.requestFailed),
+			});
+			setBusy(false);
 		}
 	}
 
@@ -1130,6 +1431,19 @@ function Profile({
 					<dt>{copy.role}</dt>
 					<dd>{roleLabel(copy.roles, user)}</dd>
 				</div>
+				<div>
+					<dt>{getMessages(locale).billing.balanceLabel}</dt>
+					<dd>
+						{balance === null ? (
+							"—"
+						) : (
+							<LensPrice lenses={balance} locale={locale} signed />
+						)}{" "}
+						<a className="text-link" href={`${base}balance/`}>
+							{getMessages(locale).billing.balanceLink}
+						</a>
+					</dd>
+				</div>
 			</dl>
 			<div className="actions">
 				<button
@@ -1152,6 +1466,7 @@ function Profile({
 				<button
 					type="button"
 					className="text-link"
+					disabled={busy}
 					onClick={() => void signOut()}
 					title={copy.logout}
 				>
