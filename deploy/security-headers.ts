@@ -3,6 +3,7 @@ import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { analyticsEnabled, analyticsOrigins } from "../src/lib/analytics";
 import { siteConfig } from "../src/lib/site-config";
+import { nginxCspHeader } from "./nginx-csp";
 
 async function files(root: string): Promise<string[]> {
 	const entries = await readdir(root, { withFileTypes: true });
@@ -35,7 +36,7 @@ const ga = (origins: readonly string[]) =>
 	analyticsEnabled ? ` ${origins.join(" ")}` : "";
 const csp = `default-src 'self'; script-src 'self' ${[...hashes].sort().join(" ")}${ga(analyticsOrigins.script)}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:${ga(analyticsOrigins.img)}; font-src 'self'; connect-src 'self' ${apiOrigin}${ga(analyticsOrigins.connect)}; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'`;
 const headers = [
-	`add_header Content-Security-Policy "${csp}" always;`,
+	nginxCspHeader(csp),
 	`add_header Strict-Transport-Security "max-age=31536000" always;`,
 	`add_header Referrer-Policy "strict-origin-when-cross-origin" always;`,
 	`add_header X-Content-Type-Options "nosniff" always;`,
