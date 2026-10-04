@@ -1,11 +1,12 @@
 import { useId } from "react";
+import { LensCoinSparkles } from "@/lib/lens-coin/LensCoinSparkles";
 
 /**
  * The lens coin (umbrella `docs/branding/lens-coin/`): the full coin from 24 px,
  * a simpler one below, and a line version in `currentColor` for filled buttons
  * (never a color coin on iris). Decorative unless `title` names it.
  */
-export function LensCoin({
+function StaticLensCoin({
 	size = 16,
 	variant = "color",
 	title,
@@ -111,5 +112,21 @@ function CoinSvg({
 				strokeLinecap="round"
 			/>
 		</svg>
+	);
+}
+
+export function LensCoin({
+	size = 16,
+	variant = "color",
+	title,
+}: {
+	size?: number;
+	variant?: "color" | "mono";
+	title?: string;
+}) {
+	return (
+		<LensCoinSparkles size={size} mono={variant === "mono"} title={title}>
+			<StaticLensCoin size={size} variant={variant} />
+		</LensCoinSparkles>
 	);
 }
