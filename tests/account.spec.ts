@@ -409,6 +409,96 @@ test("a signed-out extension gets the website's account", async ({ page }) => {
 	});
 });
 
+for (const staleProfile of [false, true])
+	test(`sync recovery renews once with an ${staleProfile ? "outdated" : "unchanged"} extension profile`, async ({
+		page,
+	}) => {
+		await installFakeExtension(page, {
+			user: staleProfile ? { ...reader, name: "Old name" } : reader,
+			token: "expired-token",
+		});
+		const api = await mockApi(page, { web: reader });
+		await page.goto("/en/profile/login/?reauth=1");
+		await expect
+			.poll(() => storedSession(page))
+			.toEqual({ user: reader, token: "handoff-token" });
+		await expect(page.getByText("You’re already signed in as")).toBeVisible();
+		expect(calls(api, "POST", "/auth/web/extension-session")).toHaveLength(1);
+		expect(calls(api, "POST", "/auth/web/login")).toHaveLength(0);
+		expect(calls(api, "POST", "/auth/web/adopt")).toHaveLength(0);
+		// Following the normal profile link must not start renewal again.
+		await page
+			.getByRole("link", { name: "Back to your profile", exact: true })
+			.click();
+		await expect(
+			page.getByText("The extension in this browser uses this account."),
+		).toBeVisible();
+		expect(calls(api, "POST", "/auth/web/extension-session")).toHaveLength(1);
+		await expectAccessible(page);
+	});
+
+test("sync recovery survives signing in when both sessions have expired", async ({
+	page,
+}) => {
+	await installFakeExtension(page, { user: reader, token: "expired-token" });
+	const api = await mockApi(page);
+	await page.goto("/en/profile/login/?reauth=1");
+	await page.getByLabel("Email").fill("reader@example.com");
+	await page.getByLabel("Password").fill("right-password");
+	await page.getByRole("button", { name: "Sign in" }).click();
+	await expect(page).toHaveURL("http://localhost:4173/en/profile/");
+	await expect
+		.poll(() => storedSession(page))
+		.toEqual({ user: reader, token: "handoff-token" });
+	await expect(
+		page.getByText("The extension in this browser uses this account."),
+	).toBeVisible();
+	expect(calls(api, "POST", "/auth/web/extension-session")).toHaveLength(1);
+});
+
+test("sync recovery survives the Google callback", async ({ page }) => {
+	await installFakeExtension(page, { user: reader, token: "expired-token" });
+	const api = await mockApi(page);
+	await page.goto("/en/profile/login/?reauth=1");
+	await expect(page.getByLabel("Email")).toBeVisible();
+	await page.goto("/en/profile/oauth/");
+	await expect(page).toHaveURL(/\/en\/profile\/$/);
+	await expect
+		.poll(() => storedSession(page))
+		.toEqual({ user: reader, token: "handoff-token" });
+	expect(calls(api, "POST", "/auth/web/oauth/session")).toHaveLength(1);
+	expect(calls(api, "POST", "/auth/web/extension-session")).toHaveLength(1);
+});
+
+test("sync recovery still asks before replacing another account", async ({
+	page,
+}) => {
+	await installFakeExtension(page, { user: other, token: "other-token" });
+	const api = await mockApi(page, { web: reader });
+	await page.goto("/en/profile/login/?reauth=1");
+	await expect(page.getByText("You’re already signed in as")).toBeVisible();
+	await page
+		.getByRole("link", { name: "Back to your profile", exact: true })
+		.click();
+	const card = page.getByRole("region", { name: "Story Lens extension" });
+	await expect(card).toContainText("other@example.com");
+	expect(calls(api, "POST", "/auth/web/extension-session")).toHaveLength(0);
+	expect(await storedSession(page)).toEqual({
+		user: other,
+		token: "other-token",
+	});
+	await card
+		.getByRole("button", { name: "Use reader@example.com in the extension" })
+		.click();
+	await expect
+		.poll(() => storedSession(page))
+		.toEqual({ user: reader, token: "handoff-token" });
+	await expect(
+		card.getByText("The extension in this browser uses this account."),
+	).toBeVisible();
+	expect(calls(api, "POST", "/auth/web/extension-session")).toHaveLength(1);
+});
+
 test("an extension on the same account gets the fresh profile, keeping its token", async ({
 	page,
 }) => {

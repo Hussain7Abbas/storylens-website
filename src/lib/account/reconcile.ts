@@ -39,7 +39,11 @@ export function isStale(website: AccountUser, extension: AccountUser): boolean {
  * Keeps the website and an installed extension on the same account
  * (pricing plan, architecture flow E). Pure, so every state pair is tested.
  */
-export function decide(web: WebState, bridge: BridgeState): Decision {
+export function decide(
+	web: WebState,
+	bridge: BridgeState,
+	options: { renewExtensionSession?: boolean } = {},
+): Decision {
 	if (web.status === "loading" || bridge.status === "detecting") return "none";
 	if (web.status === "signed-in") {
 		if (bridge.status === "missing") return "offer-install";
@@ -47,6 +51,7 @@ export function decide(web: WebState, bridge: BridgeState): Decision {
 		if (!held) return "hand-off";
 		if (held.user.isGuest) return "hand-off-merging-guest";
 		if (held.user.id !== web.user.id) return "ask-which-account";
+		if (options.renewExtensionSession) return "hand-off";
 		return isStale(web.user, held.user) ? "refresh-extension-user" : "none";
 	}
 	if (

@@ -53,6 +53,19 @@ test("decide follows the reconciliation table", () => {
 		expect(decide(web, bridge), JSON.stringify([web, bridge])).toBe(expected);
 });
 
+test("sync recovery renews the same account and preserves other account choices", () => {
+	const options = { renewExtensionSession: true };
+	expect(decide(signedIn, held(a), options)).toBe("hand-off");
+	expect(decide(signedIn, held({ ...a, name: "Old name" }), options)).toBe(
+		"hand-off",
+	);
+	expect(decide(signedIn, held(user("b")), options)).toBe("ask-which-account");
+	expect(decide(signedIn, { status: "missing" }, options)).toBe(
+		"offer-install",
+	);
+	expect(decide(signedOut, held(a), options)).toBe("adopt");
+});
+
 test("safeNext keeps only this locale's profile and pricing pages", () => {
 	expect(safeNext("/en/profile/balance/", "en")).toBe("/en/profile/balance/");
 	expect(safeNext("/en/pricing/", "en")).toBe("/en/pricing/");

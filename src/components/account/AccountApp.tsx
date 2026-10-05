@@ -93,6 +93,8 @@ function field(form: FormData, name: string): string {
 // After the reader signs out here, an extension holding another account must
 // not sign the website straight back in. A flag only, never a token.
 const SIGNED_OUT_KEY = "storylens-website-signed-out";
+// A flag survives password/Google sign-in redirects; it never stores a token.
+const RENEW_EXTENSION_KEY = "storylens-website-renew-extension";
 function signedOutHere(): boolean {
 	try {
 		return sessionStorage.getItem(SIGNED_OUT_KEY) === "1";
@@ -133,6 +135,19 @@ export function AccountApp({
 	} | null>(null);
 	const [bridge, setBridge] = useState<BridgeState>({ status: "detecting" });
 	const [notice, setNotice] = useState<Notice>(null);
+	const [renewExtensionSession, setRenewExtensionSession] = useState(false);
+	useEffect(() => {
+		const requested =
+			new URLSearchParams(window.location.search).get("reauth") === "1";
+		let pending = requested;
+		try {
+			if (requested) sessionStorage.setItem(RENEW_EXTENSION_KEY, "1");
+			pending ||= sessionStorage.getItem(RENEW_EXTENSION_KEY) === "1";
+		} catch {
+			// Recovery still works on this page if storage is blocked.
+		}
+		setRenewExtensionSession(pending);
+	}, []);
 	// The page is static, so the sign-out notice is read after hydration.
 	useEffect(() => {
 		const out = new URLSearchParams(window.location.search).get("signed-out");
@@ -214,6 +229,16 @@ export function AccountApp({
 	// Stores a session in the extension, then reflects what it holds.
 	const saveSession = useCallback(
 		async (session: AccountSession | null): Promise<boolean> => {
+			if (session) {
+				// Consume before the bridge broadcasts its new token, so renewal
+				// cannot run again for that new state pair.
+				setRenewExtensionSession(false);
+				try {
+					sessionStorage.removeItem(RENEW_EXTENSION_KEY);
+				} catch {
+					// The in-memory flag is sufficient for this page.
+				}
+			}
 			const stored = await requestSession(
 				session ? { type: "set", session } : { type: "clear" },
 			);
@@ -229,7 +254,7 @@ export function AccountApp({
 
 	const [stayOut, setStayOut] = useState(false);
 	useEffect(() => setStayOut(signedOutHere()), []);
-	const decided = decide(web, bridge);
+	const decided = decide(web, bridge, { renewExtensionSession });
 	const decision: Decision =
 		decided === "adopt" && stayOut ? "show-forms" : decided;
 	const held = bridge.status === "ready" ? bridge.session : null;
@@ -237,7 +262,13 @@ export function AccountApp({
 	// Keeps the extension on the website's account (or the website on the
 	// extension's), at most once per state pair so a failing call cannot loop.
 	useEffect(() => {
-		if (leavingRef.current || !AUTOMATIC.includes(decision)) return;
+		if (
+			leavingRef.current ||
+			view === "oauth" ||
+			linking ||
+			!AUTOMATIC.includes(decision)
+		)
+			return;
 		const key = [
 			decision,
 			web.status === "signed-in" ? JSON.stringify(web.user) : web.status,
@@ -264,7 +295,7 @@ export function AccountApp({
 		run()
 			.catch(() => setLinkFailed(true))
 			.finally(() => setLinking(false));
-	}, [decision, web, held, locale, saveSession]);
+	}, [decision, web, held, locale, saveSession, linking, view]);
 
 	const next = () => {
 		rememberSignedOut(false);
@@ -276,6 +307,16 @@ export function AccountApp({
 						locale,
 					);
 		window.location.assign(target ?? base);
+	};
+	const completeSignIn = async () => {
+		// The destination page handles the extension; do not race navigation
+		// with a handoff here when the website cookie is confirmed.
+		leavingRef.current = true;
+		if (await refreshWeb()) next();
+		else {
+			leavingRef.current = false;
+			throw new AccountApiError(0, copy.cookiesBlocked);
+		}
 	};
 
 	const titles: Record<AccountView, string> = {
@@ -331,10 +372,7 @@ export function AccountApp({
 						locale={locale}
 						base={base}
 						guest={guest}
-						onSuccess={async () => {
-							if (await refreshWeb()) next();
-							else throw new AccountApiError(0, copy.cookiesBlocked);
-						}}
+						onSuccess={completeSignIn}
 					/>
 				</>
 			) : (
@@ -344,10 +382,7 @@ export function AccountApp({
 						copy={copy}
 						locale={locale}
 						base={base}
-						onSuccess={async () => {
-							if (await refreshWeb()) next();
-							else throw new AccountApiError(0, copy.cookiesBlocked);
-						}}
+						onSuccess={completeSignIn}
 					/>
 				</>
 			);
