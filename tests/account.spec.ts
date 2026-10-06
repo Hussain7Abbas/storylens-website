@@ -779,11 +779,18 @@ test("the header shows Sign in, then the reader's name", async ({ page }) => {
 	const link = page.locator(".header-account");
 	await expect(link).toHaveAttribute("href", "/en/profile/login/");
 	await expect(link).toHaveAttribute("data-state", "ready");
+	// A browser that has never signed in holds no session, so an ordinary page
+	// reads "Sign in" without asking the API at all.
+	expect(calls(api, "GET", "/auth/me")).toHaveLength(0);
 	api.web = reader;
+	// Signing in on an account page leaves the hint the header reads.
+	await page.goto("/en/profile/", { waitUntil: "domcontentloaded" });
+	await expect(link).toHaveAttribute("aria-label", "Your profile: Reader");
 	await page.evaluate(() =>
 		sessionStorage.removeItem("storylens-website-account"),
 	);
 	await page.goto("/en/terms/", { waitUntil: "domcontentloaded" });
 	await expect(link).toHaveAttribute("href", "/en/profile/");
 	await expect(link).toHaveAttribute("aria-label", "Your profile: Reader");
+	expect(calls(api, "GET", "/auth/me").length).toBeGreaterThan(0);
 });

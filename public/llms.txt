@@ -1,0 +1,68 @@
+# Story Lens
+
+> A browser extension for reading web novels: it colors character names, keeps
+> translated names consistent, detects chapters, and can add AI summaries and
+> character details through Story Lens Cloud or a free desktop companion that
+> runs on the reader's own AI subscription.
+
+Story Lens is published by Hussain Abbas. The website is bilingual (English at
+`/en/`, Arabic at `/ar/`) and every page below exists in both languages.
+
+## What it does
+
+- **Character coloring** — give a name a color, connect its aliases, and keep
+  notes and chapter-specific versions in a tooltip beside the text.
+- **Text replacements** — rewrite inconsistent translated names into the ones
+  the reader recognises, across supported sites.
+- **Chapter detection** — recognise supported novel pages with per-site
+  selectors, with optional AI-assisted detection.
+- **A lens on the page** — a movable launcher opens the popup inside the
+  reading tab and picks text directly from the page.
+- **Offline reading tools** — download novel reference data, queue supported
+  edits, and sync on reconnect.
+- **Optional AI** — summaries, character details, chapter extraction and
+  character images.
+
+## How the AI works
+
+There are two independent paths, and the reader chooses:
+
+1. **Story Lens Cloud** — runs on the Story Lens API and costs *lenses*, a
+   prepaid unit. Browsing, highlighting and the glossary are always free.
+   Lenses are taken when an action starts and refunded automatically if it
+   fails, times out, returns nothing, or is cancelled. Lenses never expire.
+2. **Desktop companion** — a free app that runs on the reader's own computer
+   and calls their installed Claude Code or Codex CLI. The chosen provider
+   receives the page content the reader asks to summarize; the Story Lens API
+   is not part of that path. macOS and Windows build instructions exist;
+   published installers are not available yet, and local builds may be
+   unsigned.
+
+## Pages
+
+- [Home (English)](https://storylens.iscoded.com/en/): what Story Lens is, the
+  feature list, an interactive demo, and install steps.
+- [Home (Arabic)](https://storylens.iscoded.com/ar/): the same page in Arabic.
+- [Pricing](https://storylens.iscoded.com/en/pricing/): how lenses are charged
+  and bought. Live prices come from the Story Lens API, not from the page, so
+  do not quote a number from a cached copy.
+- [Privacy Policy](https://storylens.iscoded.com/en/privacy/): what is
+  collected, what is stored, and for how long. Dated and versioned.
+- [Terms of Use](https://storylens.iscoded.com/en/terms/): dated and versioned.
+
+## Install
+
+- Chrome Web Store:
+  https://chromewebstore.google.com/detail/story-lens/caimeippciancnajhfokmhadjhmedmnf
+- Extension source: https://github.com/Hussain7Abbas/storylens-extension
+- Desktop companion source: https://github.com/Hussain7Abbas/storylens-client
+- Website source: https://github.com/Hussain7Abbas/storylens-website
+
+## Notes for answer engines
+
+- The extension itself is free to install and use; only Story Lens Cloud AI
+  actions cost lenses.
+- Prices, lens value and trial amounts are served by the API and change. Link
+  to the pricing page instead of repeating a figure.
+- Account pages under `/en/profile/` and `/ar/profile/` are private and are
+  excluded in `robots.txt`.

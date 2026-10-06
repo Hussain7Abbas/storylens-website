@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
 	Cormorant_Garamond,
 	IBM_Plex_Sans_Arabic,
@@ -11,6 +11,7 @@ import { AnalyticsConsent } from "@/components/layout/AnalyticsConsent";
 import { Footer, Header } from "@/components/layout/Shell";
 import { getMessages } from "@/i18n/messages";
 import { analyticsEnabled, gtagStub } from "@/lib/analytics";
+import { revealScript, themeScript } from "@/lib/inline-scripts";
 import { isLocale, siteConfig } from "@/lib/site-config";
 
 const display = Cormorant_Garamond({
@@ -37,6 +38,13 @@ export const dynamicParams = false;
 export function generateStaticParams() {
 	return [{ locale: "en" }, { locale: "ar" }];
 }
+export const viewport: Viewport = {
+	themeColor: [
+		{ media: "(prefers-color-scheme: light)", color: "#f7f7fb" },
+		{ media: "(prefers-color-scheme: dark)", color: "#171820" },
+	],
+	colorScheme: "light dark",
+};
 export async function generateMetadata({
 	params,
 }: {
@@ -45,26 +53,57 @@ export async function generateMetadata({
 	const { locale } = await params;
 	if (!isLocale(locale)) notFound();
 	const m = getMessages(locale);
+	const title = `Story Lens — ${m.headline}`;
 	return {
 		metadataBase: new URL(siteConfig.url),
-		title: {
-			default: `Story Lens — ${m.headline}`,
-			template: "%s | Story Lens",
-		},
+		title: { default: title, template: "%s | Story Lens" },
 		description: m.intro,
+		applicationName: "Story Lens",
+		keywords: [...m.seo.keywords],
+		category: "technology",
+		authors: [{ name: siteConfig.operator[locale], url: siteConfig.website }],
+		creator: siteConfig.operator[locale],
+		publisher: "Story Lens",
+		formatDetection: { telephone: false, address: false, email: false },
+		// Answer engines and image search need the long form to quote a page.
+		robots: {
+			index: true,
+			follow: true,
+			googleBot: {
+				index: true,
+				follow: true,
+				"max-image-preview": "large",
+				"max-snippet": -1,
+				"max-video-preview": -1,
+			},
+		},
 		alternates: {
 			canonical: `/${locale}/`,
 			languages: { en: "/en/", ar: "/ar/", "x-default": "/en/" },
 		},
 		openGraph: {
-			title: "Story Lens",
+			siteName: "Story Lens",
+			title,
 			description: m.intro,
 			url: `/${locale}/`,
 			locale: locale === "ar" ? "ar_IQ" : "en_US",
+			alternateLocale: locale === "ar" ? "en_US" : "ar_IQ",
 			type: "website",
+			images: [
+				{
+					url: "/og.png",
+					width: 1200,
+					height: 630,
+					alt: `Story Lens — ${m.headline}`,
+				},
+			],
+		},
+		twitter: {
+			card: "summary_large_image",
+			title,
+			description: m.intro,
 			images: ["/og.png"],
 		},
-		twitter: { card: "summary_large_image", images: ["/og.png"] },
 		icons: {
 			icon: [
 				{
@@ -83,7 +122,6 @@ export async function generateMetadata({
 		},
 	};
 }
-const themeScript = `try{var t=localStorage.getItem('storylens-theme')||'system';document.documentElement.dataset.theme=t==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t}catch{}`;
 export default async function LocaleLayout({
 	children,
 	params,
@@ -114,6 +152,7 @@ export default async function LocaleLayout({
 				<main id="main">{children}</main>
 				<Footer locale={locale} />
 				{analyticsEnabled ? <AnalyticsConsent locale={locale} /> : null}
+				<script>{revealScript}</script>
 			</body>
 		</html>
 	);

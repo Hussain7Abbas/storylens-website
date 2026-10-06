@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { PricingTable } from "@/components/billing/PricingTable";
 import { getMessages } from "@/i18n/messages";
 import { isLocale, siteConfig } from "@/lib/site-config";
+import { pricingGraph } from "@/lib/structured-data";
 
 export async function generateMetadata({
 	params,
@@ -71,6 +72,7 @@ export default async function Page({
 					</details>
 				))}
 			</section>
+			<script type="application/ld+json">{pricingGraph(locale)}</script>
 		</section>
 	);
 }

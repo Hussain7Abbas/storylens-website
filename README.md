@@ -1,6 +1,6 @@
 # Story Lens website
 
-English and Arabic website for the Story Lens browser extension, with an original interactive reading demo, optional GSAP/Three.js visuals, privacy policy, and terms.
+English and Arabic website for the Story Lens browser extension, with an original interactive reading demo, hand-written CSS motion and no animation library, privacy policy, and terms.
 
 Production: https://storylens.iscoded.com · [Extension](https://github.com/Hussain7Abbas/storylens-extension) · [Desktop companion](https://github.com/Hussain7Abbas/storylens-client)
 

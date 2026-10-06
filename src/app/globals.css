@@ -539,14 +539,38 @@ html[lang="ar"] .story-text {
 	text-align: center;
 	font-size: 0.75rem;
 }
-.lens-enhancement {
+/* The reading lens: a glass ornament drawn in CSS, not a WebGL scene. */
+.lens-glass {
+	display: none;
 	position: absolute;
-	inset-inline-start: 0;
-	top: 12%;
-	width: 48%;
-	height: 48%;
+	inset-inline-start: 2%;
+	top: 13%;
+	width: min(12rem, 44%);
+	aspect-ratio: 1;
+	border-radius: 50%;
 	z-index: 2;
 	pointer-events: none;
+	border: 2px solid color-mix(in oklab, var(--accent) 60%, transparent);
+	backdrop-filter: blur(1px) saturate(1.3) brightness(1.04);
+	background:
+		radial-gradient(
+			circle at 32% 26%,
+			rgb(255 255 255 / 0.55),
+			rgb(255 255 255 / 0) 46%
+		),
+		radial-gradient(
+			circle at 72% 78%,
+			color-mix(in oklab, var(--accent) 20%, transparent),
+			transparent 58%
+		);
+	box-shadow:
+		var(--shadow),
+		inset 0 0 2rem rgb(255 255 255 / 0.35);
+}
+@media (min-width: 1024px) {
+	.lens-glass {
+		display: block;
+	}
 }
 .why-section {
 	background: var(--wash);
@@ -1803,7 +1827,7 @@ details p {
 	.floating-note {
 		transform: none;
 	}
-	.lens-enhancement {
+	.lens-glass {
 		display: none;
 	}
 }
@@ -1839,9 +1863,72 @@ details p {
 	}
 }
 
-.header.scrolled {
-	box-shadow: var(--shadow-sm);
+/* ------------------------------------------------------------------------
+   Motion. Written here, with no animation library: CSS keyframes for the
+   hero, scroll-driven timelines where the browser has them, and a small
+   IntersectionObserver in the document for section reveals. Every effect is
+   decorative, so a browser without scroll timelines simply shows the page.
+   ------------------------------------------------------------------------ */
+@keyframes sl-rise {
+	from {
+		opacity: 0;
+		translate: 0 1.75rem;
+	}
 }
+/* The hero column holds the LCP element, so it slides without fading: an
+   element at `opacity: 0` is not an LCP candidate and would delay the mark. */
+@keyframes sl-slide {
+	from {
+		translate: 0 1.25rem;
+	}
+}
+@keyframes sl-header-shade {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+@keyframes sl-lens-sweep {
+	0% {
+		opacity: 0;
+		translate: -45% 0;
+	}
+	18% {
+		opacity: 1;
+	}
+	82% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+		translate: 70% 0;
+	}
+}
+@keyframes sl-lens-sweep-rtl {
+	0% {
+		opacity: 0;
+		translate: 45% 0;
+	}
+	18% {
+		opacity: 1;
+	}
+	82% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+		translate: -70% 0;
+	}
+}
+@keyframes sl-lens-drift {
+	to {
+		translate: 14% 9%;
+		scale: 1.04;
+	}
+}
+
 .demo-lens {
 	display: none;
 	position: absolute;
@@ -1855,9 +1942,140 @@ details p {
 	pointer-events: none;
 	box-shadow: var(--shadow);
 }
+/* The sticky header earns its shadow from the page's own scroll offset. */
+.header::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	box-shadow: var(--shadow-sm);
+	opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	/* The hero is above the fold, so it rises on load rather than on scroll. */
+	.hero-copy > * {
+		animation: sl-slide 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+	}
+	.hero-art > .reading-card,
+	.hero-art > .floating-note,
+	.hero-art > .art-caption {
+		animation: sl-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+	}
+	.hero-copy > :nth-child(2) {
+		animation-delay: 70ms;
+	}
+	.hero-copy > :nth-child(3) {
+		animation-delay: 140ms;
+	}
+	.hero-copy > :nth-child(4) {
+		animation-delay: 210ms;
+	}
+	.hero-copy > :nth-child(5) {
+		animation-delay: 280ms;
+	}
+	.hero-art > .reading-card {
+		animation-delay: 120ms;
+	}
+	.hero-art > .floating-note {
+		animation-delay: 260ms;
+	}
+	.hero-art > .art-caption {
+		animation-delay: 340ms;
+	}
+	.lens-glass {
+		animation: sl-lens-drift 9s ease-in-out infinite alternate;
+	}
+
+	/* Section reveals. The document marks `data-motion` only once the
+	   observer exists, so content is never left hidden by a failed script. */
+	html[data-motion="on"] [data-reveal] {
+		opacity: 0;
+	}
+	html[data-motion="on"] [data-reveal="in"] {
+		opacity: 1;
+		animation: sl-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+	}
+	html[data-motion="on"] .feature-card[data-reveal="in"]:nth-child(2n),
+	html[data-motion="on"] .steps li[data-reveal="in"]:nth-child(2) {
+		animation-delay: 90ms;
+	}
+	html[data-motion="on"] .feature-card[data-reveal="in"]:nth-child(3n),
+	html[data-motion="on"] .steps li[data-reveal="in"]:nth-child(3) {
+		animation-delay: 180ms;
+	}
+
+	@supports (animation-timeline: scroll()) {
+		.header::after {
+			animation: sl-header-shade linear both;
+			animation-timeline: scroll(root block);
+			animation-range: 0 90px;
+		}
+	}
+}
+
 @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
 	.demo-lens {
 		display: block;
+	}
+	@supports ((animation-timeline: view()) and (animation-range: entry)) {
+		.demo-passage {
+			view-timeline: --demo-passage block;
+		}
+		.demo-lens {
+			animation: sl-lens-sweep linear both;
+			animation-timeline: --demo-passage;
+			animation-range: entry 25% exit 25%;
+		}
+		html[dir="rtl"] .demo-lens {
+			animation-name: sl-lens-sweep-rtl;
+		}
+	}
+}
+
+/* The gift burst: the coin's own sparkle, masked and thrown by keyframes. */
+@keyframes sl-spark {
+	0% {
+		opacity: 0;
+		translate: 0 0;
+		scale: 0.2;
+		rotate: 0deg;
+	}
+	14% {
+		opacity: 1;
+	}
+	70% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+		translate: var(--spark-x, 0) var(--spark-y, -6rem);
+		scale: var(--spark-scale, 1);
+		rotate: var(--spark-spin, 0deg);
+	}
+}
+.gift-sparks {
+	position: fixed;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	pointer-events: none;
+}
+.gift-spark {
+	grid-area: 1 / 1;
+	width: 1rem;
+	aspect-ratio: 1;
+	opacity: 0;
+	background: var(--spark-color, var(--accent));
+	mask:
+		url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path d='M32 17.5c1.3 7.6 5.9 12.2 13.5 13.5-7.6 1.3-12.2 5.9-13.5 13.5-1.3-7.6-5.9-12.2-13.5-13.5 7.6-1.3 12.2-5.9 13.5-13.5z'/></svg>")
+		center / contain no-repeat;
+	animation: sl-spark 1.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	animation-delay: var(--spark-delay, 0ms);
+}
+@media (prefers-reduced-motion: reduce) {
+	.gift-sparks {
+		display: none;
 	}
 }
 

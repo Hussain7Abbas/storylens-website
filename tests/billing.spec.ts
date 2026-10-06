@@ -410,7 +410,7 @@ test("gifts are celebrated together, purchases with a notice, then marked seen",
 	await expect(dialog).toBeVisible();
 	await expect(dialog).toContainText("Story Lens sent you 60 lenses.");
 	await expect(dialog).toContainText("Thanks for the feedback!");
-	await expect(page.locator("canvas")).toHaveCount(1);
+	await expect(page.locator(".gift-sparks > .gift-spark")).toHaveCount(28);
 	await expect(page.locator(".account-notice")).toHaveText(
 		"Your 500 lenses have arrived.",
 	);
@@ -444,7 +444,7 @@ test("with reduced motion the dialog appears without confetti", async ({
 		page.getByRole("dialog", { name: "Congratulations!" }),
 	).toContainText("You received 10 lenses to try Story Lens Cloud.");
 	await page.waitForTimeout(300);
-	await expect(page.locator("canvas")).toHaveCount(0);
+	await expect(page.locator(".gift-spark")).toHaveCount(0);
 });
 
 test("without notices (a trial of 0) nothing celebrates", async ({ page }) => {
@@ -453,7 +453,7 @@ test("without notices (a trial of 0) nothing celebrates", async ({ page }) => {
 	await expect(page.locator(".account-details")).toContainText("Balance");
 	await page.waitForTimeout(300);
 	await expect(page.getByRole("dialog")).toHaveCount(0);
-	await expect(page.locator("canvas")).toHaveCount(0);
+	await expect(page.locator(".gift-spark")).toHaveCount(0);
 	expect(api.seen).toEqual([]);
 });
 

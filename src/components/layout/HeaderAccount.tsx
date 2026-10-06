@@ -6,6 +6,7 @@ import { getWebMe } from "@/lib/account/api";
 import {
 	ACCOUNT_CHANGED_EVENT,
 	type HeaderAccount as Account,
+	hasSessionHint,
 	readHeaderAccount,
 	writeHeaderAccount,
 } from "@/lib/account/header-state";
@@ -13,7 +14,10 @@ import type { Locale } from "@/lib/site-config";
 
 /**
  * "Sign in", or the reader's name once the website session is known. The link
- * keeps its width while it loads, so the static header does not shift.
+ * keeps its width while it loads, so the static header does not shift. A
+ * browser that has never signed in holds no session, so it reads "Sign in"
+ * without calling the API: one less request per page, and no 401 in the
+ * console of a first visit. The account pages set the hint when signing in.
  */
 export function HeaderAccount({ locale }: { locale: Locale }) {
 	const copy = getMessages(locale).account;
@@ -24,6 +28,10 @@ export function HeaderAccount({ locale }: { locale: Locale }) {
 			const cached = readHeaderAccount();
 			if (cached) {
 				setAccount(cached);
+				return;
+			}
+			if (!hasSessionHint()) {
+				setAccount({ signedIn: false });
 				return;
 			}
 			getWebMe(locale)

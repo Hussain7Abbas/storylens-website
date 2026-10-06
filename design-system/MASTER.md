@@ -44,13 +44,15 @@ The website hero pairs product copy with an aligned chapter card, illustrative h
 
 ### Lens coin and prices
 
-The lens coin is the iris coin from the umbrella `docs/branding/lens-coin/` (full from 24 px, simplified below, a 1.75-stroke line coin in `currentColor` inside filled buttons). Prices are a coin plus a tabular number (`LensPrice`); 0 reads "Free" in the success color; the accessible text names the amount with the right plural ("3 lenses", "3 عدسات"). The balance card pairs a 56 px coin with the amount and its muted dollar value. The request form uses chip presets (`aria-pressed`), a WhatsApp/Telegram segmented choice and a live total; statuses are small chips (approved in success, rejected in error, cancelled muted). The gift dialog is a centered card with a 72 px coin and one short burst of iris sparkles; the pricing table is a plain bordered table with the feature description muted under its name.
+The lens coin is the iris coin from the umbrella `docs/branding/lens-coin/` (full from 24 px, simplified below, a 1.75-stroke line coin in `currentColor` inside filled buttons). Prices are a coin plus a tabular number (`LensPrice`); 0 reads "Free" in the success color; the accessible text names the amount with the right plural ("3 lenses", "3 عدسات"). The balance card pairs a 56 px coin with the amount and its muted dollar value. The request form uses chip presets (`aria-pressed`), a WhatsApp/Telegram segmented choice and a live total; statuses are small chips (approved in success, rejected in error, cancelled muted). The gift dialog is a centered card with a 72 px coin and one short CSS burst of the coin's own iris sparkle; the pricing table is a plain bordered table with the feature description muted under its name.
 
-## Motion and 3D
+## Motion
 
-Motion is optional. GSAP reveals are one-shot, clean up through useGSAP, and convey no required information. Three.js stays lazy, gated by desktop width, WebGL2, hardware concurrency, data-saver, visibility and motion preference. Demand rendering avoids continuous work. Both the chapter texture and decorative lens rim read the current palette and update on theme changes. Geometry/camera values are deliberate decorative constants.
+Motion is optional and carries no information. There is no animation library: every effect is a CSS keyframe in `src/app/globals.css`. The hero rises on load with a short stagger; section reveals are one-shot, marked by a small `IntersectionObserver` that only enables the hidden state once it is running; the sticky header's shadow and the demo lens sweep use scroll-driven timelines behind `@supports`, so a browser without them simply shows the static page. Nothing pins or hijacks the scroll.
 
-Reduced motion disables reveals and the lazy scene, and removes UI transitions. Keep all reading content and actions present before animation or JavaScript.
+The hero reading lens is `.lens-glass`: a circular pane of frosted glass with an iris rim, a specular highlight and a slow drift, drawn from the resolved palette tokens and shown only from 1024px. It replaced a lazy Three.js renderer, which removed roughly 930KB of JavaScript from the export.
+
+Reduced motion disables reveals, the lens and all UI transitions. Keep all reading content and actions present before animation or JavaScript.
 
 ## Content and validation
 
@@ -58,4 +60,4 @@ Use one h1, labeled sections, locale-preserving links, native FAQ/details and na
 
 Historical research in `skill-recommendations.md` and `design-system/story-lens/MASTER.md` is not the active palette. It informed the editorial structure; the owner's Ink & Iris choice supersedes its amber/color/font recommendations. The local UI UX Pro Max query `reading extension restrained violet --design-system` supported restrained grids and a coherent hierarchy; reject its amber palette and unverified testimonials in favor of the approved direction and existing original demo.
 
-Record actual browser, accessibility, build and performance evidence under `design-system/validation/`. Historical reports are dated evidence, not proof that a later change passed. Lighthouse CI retains the recorded mobile 4G profile. Optional desktop Three.js renderer was historically ~244KB gzip, above the 180KB stretch budget, and earlier slow-4G LCP ~2.24s exceeded the 2s stretch goal; do not silently mark these budgets passed.
+Record actual browser, accessibility, build and performance evidence under `design-system/validation/`. Historical reports are dated evidence, not proof that a later change passed. Lighthouse CI retains the recorded mobile 4G profile. The historical desktop Three.js renderer (~244KB gzip, above the 180KB stretch budget) and the GSAP bundle were removed in favour of CSS motion; re-measure rather than assuming a budget now passes. Earlier slow-4G LCP ~2.24s exceeded the 2s stretch goal; do not silently mark these budgets passed.

@@ -14,8 +14,7 @@ import {
 } from "lucide-react";
 import { getMessages } from "@/i18n/messages";
 import { type Locale, siteConfig } from "@/lib/site-config";
-import { Reveal } from "../motion/Reveal";
-import { LensEnhancement } from "../three/LensEnhancement";
+import { landingGraph } from "@/lib/structured-data";
 import { Demo } from "./Demo";
 import { ExtensionScreenshots } from "./ExtensionScreenshots";
 import { ReadingShowcase } from "./ReadingShowcase";
@@ -32,7 +31,7 @@ const icons = [
 export function Landing({ locale }: { locale: Locale }) {
 	const m = getMessages(locale);
 	return (
-		<Reveal>
+		<>
 			<section id="top" className="hero container" aria-labelledby="hero-title">
 				<div className="hero-copy">
 					<p className="eyebrow">
@@ -96,7 +95,7 @@ export function Landing({ locale }: { locale: Locale }) {
 							<span>{m.noteBody}</span>
 						</div>
 					</div>
-					<LensEnhancement />
+					<div className="lens-glass" aria-hidden="true" />
 					<p className="art-caption">{m.caption}</p>
 				</div>
 			</section>
@@ -319,28 +318,7 @@ export function Landing({ locale }: { locale: Locale }) {
 					</a>
 				</div>
 			</section>
-			<script type="application/ld+json">
-				{JSON.stringify({
-					"@context": "https://schema.org",
-					"@type": "SoftwareApplication",
-					name: "Story Lens",
-					applicationCategory: "BrowserApplication",
-					operatingSystem: "Chrome",
-					url: siteConfig.url,
-					description: m.intro,
-				}).replace(/</g, "\u003c")}
-			</script>
-			<script type="application/ld+json">
-				{JSON.stringify({
-					"@context": "https://schema.org",
-					"@type": "FAQPage",
-					mainEntity: m.questions.map(([name, text]) => ({
-						"@type": "Question",
-						name,
-						acceptedAnswer: { "@type": "Answer", text },
-					})),
-				}).replace(/</g, "\u003c")}
-			</script>
-		</Reveal>
+			<script type="application/ld+json">{landingGraph(locale)}</script>
+		</>
 	);
 }

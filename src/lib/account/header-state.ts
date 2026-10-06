@@ -2,6 +2,10 @@
 // pages do not ask the API on every view. Only a display name is kept, never a
 // token; the account pages update it whenever the website session changes.
 const KEY = "storylens-website-account";
+// A visitor who has never signed in on this browser has no website session, so
+// the header has nothing to ask about. The flag survives the tab, holds no
+// personal data, and only decides whether the header probes the API at all.
+const HINT_KEY = "storylens-website-session";
 const MAX_AGE_MS = 5 * 60 * 1000;
 export const ACCOUNT_CHANGED_EVENT = "storylens-account-changed";
 
@@ -30,6 +34,16 @@ export function readHeaderAccount(): HeaderAccount | null {
 	}
 }
 
+/** Whether this browser has ever held a website session worth asking about. */
+export function hasSessionHint(): boolean {
+	try {
+		return localStorage.getItem(HINT_KEY) === "1";
+	} catch {
+		// Blocked storage only means the header asks the API once per page.
+		return true;
+	}
+}
+
 export function writeHeaderAccount(account: HeaderAccount): void {
 	try {
 		sessionStorage.setItem(
@@ -40,6 +54,8 @@ export function writeHeaderAccount(account: HeaderAccount): void {
 					: { at: Date.now() },
 			),
 		);
+		if (account.signedIn) localStorage.setItem(HINT_KEY, "1");
+		else localStorage.removeItem(HINT_KEY);
 	} catch {
 		// Blocked storage only means the next page asks the API again.
 	}

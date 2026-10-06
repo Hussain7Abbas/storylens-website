@@ -10,23 +10,33 @@ export function Demo({ locale }: { locale: Locale }) {
 	const [tooltip, setTooltip] = useState(false);
 	const [status, setStatus] = useState("");
 	const manual = useRef(false);
+	const passage = useRef<HTMLDivElement>(null);
+	// The demo used to be driven by a pinned scroll timeline. It now walks the
+	// same five stages from the section's own progress through the viewport:
+	// no pinning, no scroll hijacking, and nothing runs until it is on screen.
 	useEffect(() => {
-		const updateStage = (event: Event) => {
-			if (
-				manual.current ||
-				!(event instanceof CustomEvent) ||
-				typeof event.detail !== "number"
-			)
-				return;
-			const stage = event.detail;
-			setHighlight(stage >= 1);
-			setReplace(stage >= 2);
-			setTooltip(stage >= 3);
-			if (stage === 4) setStatus(m.demoStatus);
-		};
-		window.addEventListener("storylens-demo-stage", updateStage);
-		return () =>
-			window.removeEventListener("storylens-demo-stage", updateStage);
+		const target = passage.current;
+		if (!target) return;
+		const allowed = matchMedia(
+			"(min-width: 1024px) and (prefers-reduced-motion: no-preference)",
+		);
+		if (!allowed.matches) return;
+		let stage = -1;
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (manual.current || !entry) return;
+				const next = Math.min(4, Math.floor(entry.intersectionRatio * 5));
+				if (next === stage) return;
+				stage = next;
+				setHighlight(next >= 1);
+				setReplace(next >= 2);
+				setTooltip(next >= 3);
+				if (next === 4) setStatus(m.demoStatus);
+			},
+			{ threshold: Array.from({ length: 21 }, (_, step) => step / 20) },
+		);
+		observer.observe(target);
+		return () => observer.disconnect();
 	}, [m.demoStatus]);
 	function update(action: () => void) {
 		manual.current = true;
@@ -79,7 +89,7 @@ export function Demo({ locale }: { locale: Locale }) {
 					{status}
 				</p>
 			</div>
-			<div className="reading-card demo-passage">
+			<div className="reading-card demo-passage" ref={passage}>
 				<span className="demo-lens" aria-hidden="true" />
 				<div className="chapter-label">{m.chapter}</div>
 				<h3>{m.chapterTitle}</h3>

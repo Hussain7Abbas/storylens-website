@@ -1,5 +1,19 @@
 {
 	"skip": "Skip to content",
+	"seo": {
+		"keywords": [
+			"web novel reader",
+			"browser extension for web novels",
+			"character highlighting",
+			"character names tracker",
+			"text replacement extension",
+			"translated novel names",
+			"chapter detection",
+			"light novel glossary",
+			"Arabic web novels",
+			"AI chapter summary"
+		]
+	},
 	"features": "Features",
 	"how": "How it works",
 	"companion": "Desktop companion",

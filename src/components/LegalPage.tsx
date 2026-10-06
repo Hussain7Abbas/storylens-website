@@ -3,6 +3,7 @@ import path from "node:path";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { getMessages } from "@/i18n/messages";
 import { type Locale, siteConfig } from "@/lib/site-config";
+import { legalGraph } from "@/lib/structured-data";
 
 function slug(value: string): string {
 	return value
@@ -95,6 +96,9 @@ export async function LegalPage({
 					</p>
 				</article>
 			</div>
+			<script type="application/ld+json">
+				{legalGraph(locale, kind, title, updated)}
+			</script>
 		</>
 	);
 }

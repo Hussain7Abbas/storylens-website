@@ -24,6 +24,11 @@ export function ReadingShowcase({ locale }: { locale: Locale }) {
 	const item = m.items[selected];
 	const imagePath = (index: number) =>
 		`/images/reading/${screens[index]}-${locale}.webp`;
+	const sourceSet = (index: number) =>
+		`/images/reading/${screens[index]}-${locale}-small.webp 640w, /images/reading/${screens[index]}-${locale}-medium.webp 960w, ${imagePath(index)} 1280w`;
+	// The last two figures sit two-across on wide screens; the rest three.
+	const sizes = (index: number) =>
+		`(max-width: 700px) calc(100vw - 2.5rem), (max-width: 1000px) 47vw, ${index >= 3 ? "33rem" : "22rem"}`;
 
 	useEffect(() => {
 		const player = video.current;
@@ -108,7 +113,7 @@ export function ReadingShowcase({ locale }: { locale: Locale }) {
 						controls
 						playsInline
 						preload="none"
-						poster={imagePath(0)}
+						poster={`/images/reading/${screens[0]}-${locale}-medium.webp`}
 						aria-labelledby="walkthrough-video-title"
 						aria-describedby="walkthrough-video-description"
 					>
@@ -173,10 +178,7 @@ export function ReadingShowcase({ locale }: { locale: Locale }) {
 							}}
 						>
 							<picture>
-								<source
-									srcSet={`/images/reading/${screens[index]}-${locale}-small.webp 640w, ${imagePath(index)} 1280w`}
-									sizes="(max-width: 700px) 100vw, (max-width: 1000px) 50vw, 33vw"
-								/>
+								<source srcSet={sourceSet(index)} sizes={sizes(index)} />
 								<Image
 									src={imagePath(index)}
 									alt={screen.alt}

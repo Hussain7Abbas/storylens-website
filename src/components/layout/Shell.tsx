@@ -12,7 +12,7 @@ export function Header({ locale }: { locale: Locale }) {
 		<header className="header">
 			<div className="container header-inner">
 				<a className="brand" href={`/${locale}/`}>
-					<Image src="/logo.webp" width={36} height={36} alt="" />
+					<Image src="/logo-72.webp" width={36} height={36} alt="" />
 					<span>
 						Story Lens<span className="brand-dot">.</span>
 					</span>
