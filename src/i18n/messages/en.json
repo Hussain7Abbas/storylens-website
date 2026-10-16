@@ -11,7 +11,10 @@
 			"chapter detection",
 			"light novel glossary",
 			"Arabic web novels",
-			"AI chapter summary"
+			"AI chapter summary",
+			"AI chapter covers",
+			"bilingual novel glossary",
+			"personal reading colors"
 		]
 	},
 	"features": "Features",
@@ -23,7 +26,7 @@
 	"menu": "Menu",
 	"eyebrow": "A little clarity. A better chapter.",
 	"headline": "Stay inside the story.",
-	"intro": "Characters you remember. Names that stay consistent. Story Lens brings a little order to the worlds you love reading.",
+	"intro": "Keep characters, aliases and chapter notes close. Make translated names consistent, personalize your reading, and call on AI when you need a recap or an image.",
 	"action": "See it in action",
 	"chips": [
 		"Made for web novels",
@@ -49,31 +52,43 @@
 		"Find your place again"
 	],
 	"featureTitle": "Small tools for sprawling worlds.",
-	"featureIntro": "Keep your place in the cast, smooth out a translation, and read the way that works for you.",
+	"featureIntro": "Build a glossary that grows with the story, keep your preferred names and colors, and add AI only when you want it.",
 	"featureCards": [
 		[
-			"Character coloring",
-			"Give names a color, connect aliases, and keep notes and versions close with tooltips."
+			"Characters, with context",
+			"Connect names and aliases with notes, images and chapter-specific details. Open a character tooltip with a click or on hover."
 		],
 		[
-			"Text replacements",
-			"Turn inconsistent translated names into the ones you recognize."
+			"Names that stay familiar",
+			"Replace inconsistent names or phrases with your preferred terms, directly on the reading page."
 		],
 		[
-			"Chapter detection",
-			"Recognize supported novel pages with per-site selectors and optional AI-assisted detection."
+			"Find the right chapter",
+			"Recognize supported novel pages with site selectors. Ask your selected Cloud or Desktop AI to help detect a new page layout."
 		],
 		[
-			"A lens on the page",
-			"Open the popup in your reading tab, move the launcher, and pick text directly from the page."
+			"Keep several ideas open",
+			"Open multiple popup tabs beside your chapter. Switch between character forms while AI works, with progress shown on each tab."
 		],
 		[
-			"Offline reading tools",
-			"Download novel reference data, queue supported edits, and sync when you reconnect."
+			"Reference tools, even offline",
+			"Download a novel’s glossary and reference data. Supported edits stay on your device and sync when you reconnect."
 		],
 		[
-			"Optional AI summaries",
-			"Pair the desktop companion to summarize a page through your own Claude Code, Codex or Gemini login."
+			"One glossary, two languages",
+			"Keep English and Arabic names and descriptions together. Link translations, connect aliases, and match Arabic names even when vowel marks differ."
+		],
+		[
+			"Read in your own colors",
+			"Choose personal category and nature colors, adjust tooltip text size, and turn on a warm night light. Optional word effects add sparkle, heat, shaking or glitching."
+		],
+		[
+			"AI when you need a hand",
+			"Summarize a page, suggest character details, extract a chapter’s cast or create character images. Choose lens-funded Cloud or your own desktop AI account."
+		],
+		[
+			"A scene before the chapter",
+			"Generate a cinematic cover from the chapter, novel context and character references. Readers share the saved artwork; automatic generation is off by default."
 		]
 	],
 	"demoLabel": "TRY A CHAPTER",
@@ -97,24 +112,24 @@
 		]
 	],
 	"companionLabel": "OPTIONAL DESKTOP COMPANION",
-	"companionTitle": "A recap, through your own AI account.",
-	"companionBody": "The companion runs on your computer and calls your installed Claude Code, Codex or Gemini CLI. The selected provider receives the page content you ask to summarize. Story Lens’s API is not part of this summary path.",
+	"companionTitle": "Your AI tools, on your own computer.",
+	"companionBody": "Use the free companion with Claude Code, Codex or Gemini CLI for summaries, character suggestions, chapter extraction and novel research. Desktop images use Codex, independently of your text provider. The companion can also build a character list from a novel’s wiki.",
 	"setup": "Set up the companion",
 	"source": "View source",
-	"downloadNote": "macOS and Windows build instructions are available. Published installers are not available yet; local builds may be unsigned.",
+	"downloadNote": "Installers are available for Windows, macOS (Intel and Apple Silicon), and Linux. Packages are unsigned, so your operating system may ask you to allow the app. Your AI provider’s plan and limits still apply.",
 	"pairing": [
-		"Open the companion",
+		"Install and open the companion",
 		"Copy its pairing token",
-		"Connect in the extension’s AI tab",
-		"Choose a model and summarize"
+		"Connect in Settings → AI and choose Desktop",
+		"Choose a text provider; desktop images use Codex"
 	],
 	"privacyLabel": "PRIVACY, IN PLAIN LANGUAGE",
 	"privacyTitle": "Know where your chapter goes.",
 	"privacyPoints": [
-		"Summaries start when you click; your chosen AI provider receives the page content.",
-		"Chapter detection uses your connected AI provider; without one, it sends the page URL and HTML through the API to OpenRouter.",
-		"Downloaded reference data and extension preferences live on your device.",
-		"Website analytics load only if you allow them, and there are no advertising scripts."
+		"Choose Cloud or Desktop separately for text and images. Cloud sends relevant content through Story Lens to OpenRouter; Desktop sends it through your paired computer to your AI provider.",
+		"Summaries and other AI actions start when requested. Chapter covers can also generate automatically if you enable that setting; it is off by default.",
+		"Downloaded reference data and preferences stay on your device. Synced glossary contributions and saved chapter covers are shared with other readers.",
+		"Website analytics load only if you allow them. Extension analytics has its own switch in General settings; there are no advertising scripts."
 	],
 	"privacy": "Privacy Policy",
 	"terms": "Terms of Use",
@@ -123,23 +138,31 @@
 	"questions": [
 		[
 			"Which sites work?",
-			"Sites with configured chapter selectors support automatic novel detection. The text picker and AI tab can also work on ordinary web pages; browser-internal pages are excluded."
+			"Sites with configured chapter selectors support automatic novel detection. The text picker and AI tools can also work on ordinary web pages; browser-internal pages are excluded. You can ask your selected Cloud or Desktop AI to help detect a page layout."
 		],
 		[
 			"Do I need an account?",
-			"The API supports guest and registered accounts. Permission to edit shared data depends on your role."
+			"You can start with a guest account. Register on this website to contribute where your permissions allow, use Story Lens Cloud and manage your lenses. The extension in this browser can connect to the same account."
 		],
 		[
 			"Does it work offline?",
-			"Downloaded novel reference data remains available offline. Supported local edits queue for synchronization; new server requests and AI features need a connection."
+			"Downloaded novel reference data remains available offline. Supported local edits queue for synchronization; new server requests and AI features need a connection. Downloading reference data does not download the novel’s chapters."
 		],
 		[
 			"Which AI does it use?",
-			"With the companion connected, chapter-selector detection and summaries use your chosen Claude Code, Codex or Gemini CLI provider. Without a connected AI provider, selector detection uses OpenRouter through the backend. Provider charges and limits depend on your account."
+			"Choose Story Lens Cloud with lenses, or the free desktop companion with your own Claude Code, Codex or Gemini CLI account. Text and image sources can be chosen separately. Desktop image generation uses Codex; provider plans and usage limits still apply."
+		],
+		[
+			"How do chapter covers work?",
+			"Generate a cover from the current chapter, novel context and mentioned characters’ descriptions and images. The saved cover is shared with readers of that chapter and appears before its text. Automatic generation is off by default; enabling it can spend lenses when Cloud is your image source."
+		],
+		[
+			"Do my colors change the shared glossary?",
+			"Personal category and nature colors change how you see the story and sync with your account. They do not replace the shared colors for other readers. You can clear an override to return to the shared color."
 		],
 		[
 			"Is Arabic supported?",
-			"Yes. The extension and this website support English and Arabic, including right-to-left layout."
+			"Yes. The extension and website support English and Arabic with right-to-left layout. Glossary entries can hold names and descriptions in both languages, and Arabic matching ignores vowel marks with optional alif-variant matching."
 		],
 		[
 			"What about Firefox?",
@@ -151,7 +174,7 @@
 		],
 		[
 			"Is it free to use?",
-			"You can install the extension from its store listing. AI provider charges and usage limits are separate. We do not promise permanent pricing or availability."
+			"The extension’s reading tools are free. Story Lens Cloud AI actions use lenses, with current prices on the Pricing page. The desktop companion uses no lenses; your own AI provider’s plan and limits apply."
 		]
 	],
 	"finalTitle": "Let the story take it from here.",
@@ -405,10 +428,10 @@
 	"pricing": {
 		"nav": "Pricing",
 		"title": "Pricing",
-		"description": "Story Lens AI features and their prices in lenses. Pay only for what you use, or use the free desktop companion with your own subscription.",
+		"description": "AI summaries, character details and images, and shared chapter covers. Use Story Lens Cloud with lenses or the free desktop companion with your own AI account.",
 		"eyebrow": "STORY LENS CLOUD",
 		"headline": "Pay only for the AI you use",
-		"intro": "Summaries, character details, chapter extraction and character images run on Story Lens Cloud and cost lenses. Browsing, highlighting and your glossary stay free.",
+		"intro": "Summaries, character details, chapter extraction, selector detection, novel research and images—including shared chapter covers—can run on Story Lens Cloud with lenses. Browsing, highlighting and your glossary stay free.",
 		"tableCaption": "AI features and their prices",
 		"feature": "Feature",
 		"price": "Price",
@@ -433,15 +456,20 @@
 			],
 			[
 				"Is there a free option?",
-				"Yes. The Story Lens desktop companion runs the same AI features with your own Claude, Codex or Gemini account, without lenses."
+				"Yes. The free desktop companion uses your own Claude Code, Codex or Gemini CLI account without lenses; your provider’s plan and limits apply. Desktop character images and chapter covers use Codex, independently of your text provider."
 			],
 			[
 				"What is sent to AI providers?",
-				"Only what an action needs: the page or chapter text you chose, names and descriptions, and your AI prompts. Story Lens doesn’t store prompts or answers. Providers that don’t keep data are preferred; when a model has none, another provider may handle it under its own terms."
+				"Only what an action needs: relevant page or chapter text, names, descriptions, your prompts and, for covers, character image references. Raw prompts and answers are not stored in Cloud usage records. Saved glossary data, novel context and shared covers are stored separately. Provider retention follows their own terms; see the privacy policy."
+			],
+			[
+				"Do automatic chapter covers use lenses?",
+				"Yes, when Cloud is your image source. Automatic cover generation is off by default. Existing shared covers are reused, and viewing them does not start a new generation. Check the current cover price before enabling automatic generation."
 			]
 		],
 		"setupLink": "Desktop companion setup",
 		"privacyLink": "Privacy policy",
 		"seePricing": "See AI pricing"
-	}
+	},
+	"download": "Download the companion"
 }

@@ -5,6 +5,8 @@ for (const locale of ["en", "ar"] as const) {
 	test(`${locale}: reading controls, language, theme, navigation`, async ({
 		page,
 	}) => {
+		// Test manual toggles independently of the scroll-driven demo stages.
+		await page.emulateMedia({ reducedMotion: "reduce" });
 		await page.goto(`/${locale}/`);
 		await expect(page.locator("html")).toHaveAttribute(
 			"dir",

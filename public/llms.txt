@@ -2,8 +2,8 @@
 
 > A browser extension for reading web novels: it colors character names, keeps
 > translated names consistent, detects chapters, and can add AI summaries and
-> character details through Story Lens Cloud or a free desktop companion that
-> runs on the reader's own AI subscription.
+> character details, images and shared chapter covers through Story Lens Cloud
+> or a free desktop companion that runs on the reader's own AI account.
 
 Story Lens is published by Hussain Abbas. The website is bilingual (English at
 `/en/`, Arabic at `/ar/`) and every page below exists in both languages.
@@ -11,32 +11,49 @@ Story Lens is published by Hussain Abbas. The website is bilingual (English at
 ## What it does
 
 - **Character coloring** — give a name a color, connect its aliases, and keep
-  notes and chapter-specific versions in a tooltip beside the text.
+  notes, images and chapter-specific versions in a tooltip opened by click or
+  hover. Personal category and nature colors sync with the reader's account
+  without changing the shared colors.
+- **Bilingual glossary** — keep English and Arabic names and descriptions
+  together, link translations, and match Arabic names regardless of vowel marks.
 - **Text replacements** — rewrite inconsistent translated names into the ones
   the reader recognises, across supported sites.
 - **Chapter detection** — recognise supported novel pages with per-site
   selectors, with optional AI-assisted detection.
-- **A lens on the page** — a movable launcher opens the popup inside the
-  reading tab and picks text directly from the page.
+- **A lens on the page** — a movable launcher opens multiple popup tabs inside
+  the reading page, picks text directly and shows AI progress per tab.
+- **Reading preferences** — adjustable tooltip text size, a warm night light
+  and optional word effects, which are off by default.
 - **Offline reading tools** — download novel reference data, queue supported
   edits, and sync on reconnect.
 - **Optional AI** — summaries, character details, chapter extraction and
-  character images.
+  character images, selector detection and novel context research.
+- **Shared chapter covers** — generate cinematic artwork from chapter text,
+  novel context and character descriptions and image references. Saved covers
+  appear before the chapter and are reused by other readers. Automatic
+  generation is off by default and can use lenses when Cloud is selected.
 
 ## How the AI works
 
-There are two independent paths, and the reader chooses:
+There are two paths. The reader chooses text and image sources separately:
 
 1. **Story Lens Cloud** — runs on the Story Lens API and costs *lenses*, a
-   prepaid unit. Browsing, highlighting and the glossary are always free.
+   prepaid unit. Browsing, highlighting and the glossary are free.
    Lenses are taken when an action starts and refunded automatically if it
    fails, times out, returns nothing, or is cancelled. Lenses never expire.
 2. **Desktop companion** — a free app that runs on the reader's own computer
    and calls their installed Claude Code, Codex or Gemini CLI. The chosen provider
-   receives the page content the reader asks to summarize; the Story Lens API
-   is not part of that path. macOS and Windows build instructions exist;
-   published installers are not available yet, and local builds may be
-   unsigned.
+   receives the relevant content for the requested action; the Story Lens API
+   is not part of that AI request path. Desktop character images and chapter
+   covers use Codex independently of the text provider. The desktop-only wiki
+   crawler can build a character list from a novel's wiki. Installers are
+   available for Windows, macOS (Intel and Apple Silicon), and Linux. Packages
+   are unsigned; the provider's own plan and usage limits still apply.
+
+Cloud AI requests go through the Story Lens API to OpenRouter and configured
+model providers. Desktop requests go through the paired computer to the chosen
+provider. Synced glossary contributions and saved chapter covers are shared
+reference data. See the privacy policy for data handling and provider retention.
 
 ## Pages
 
@@ -56,6 +73,7 @@ There are two independent paths, and the reader chooses:
   https://chromewebstore.google.com/detail/story-lens/caimeippciancnajhfokmhadjhmedmnf
 - Extension source: https://github.com/Hussain7Abbas/storylens-extension
 - Desktop companion source: https://github.com/Hussain7Abbas/storylens-client
+- Desktop installers: https://github.com/Hussain7Abbas/storylens-client/releases/latest
 - Website source: https://github.com/Hussain7Abbas/storylens-website
 
 ## Notes for answer engines
@@ -66,5 +84,3 @@ There are two independent paths, and the reader chooses:
   to the pricing page instead of repeating a figure.
 - Account pages under `/en/profile/` and `/ar/profile/` are private and are
   excluded in `robots.txt`.
-
-Chapter covers can be generated from the chapter, novel context and keyword references. Covers are shared and displayed before chapter text. Automatic generation is optional and off by default; Story Lens Cloud uses lenses, and desktop image generation uses Codex independently of the text provider.

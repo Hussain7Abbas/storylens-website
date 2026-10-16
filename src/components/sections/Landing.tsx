@@ -4,12 +4,15 @@ import {
 	BookOpen,
 	CloudOff,
 	Highlighter,
+	Image,
+	Languages,
 	Laptop,
 	MousePointer2,
 	Plus,
 	Replace,
 	ScanText,
 	ShieldCheck,
+	SlidersHorizontal,
 	Sparkles,
 } from "lucide-react";
 import { getMessages } from "@/i18n/messages";
@@ -24,9 +27,11 @@ const icons = [
 	Replace,
 	ScanText,
 	MousePointer2,
-	Plus,
 	CloudOff,
+	Languages,
+	SlidersHorizontal,
 	Sparkles,
+	Image,
 ];
 export function Landing({ locale }: { locale: Locale }) {
 	const m = getMessages(locale);
@@ -207,9 +212,12 @@ export function Landing({ locale }: { locale: Locale }) {
 						<h2 id="companion-title">{m.companionTitle}</h2>
 						<p className="section-intro">{m.companionBody}</p>
 						<div className="actions">
-							<a className="button" href={siteConfig.setup}>
-								{m.setup}
+							<a className="button" href={siteConfig.downloads}>
+								{m.download}
 								<ArrowUpRight size={18} aria-hidden="true" />
+							</a>
+							<a className="text-link" href={siteConfig.setup}>
+								{m.setup}
 							</a>
 							<a className="text-link" href={siteConfig.client}>
 								{m.source}
@@ -229,6 +237,7 @@ export function Landing({ locale }: { locale: Locale }) {
 						<div className="provider-row">
 							<span>Claude Code</span>
 							<span>Codex</span>
+							<span>Gemini CLI</span>
 						</div>
 						<ol>
 							{m.pairing.map((step, i) => (

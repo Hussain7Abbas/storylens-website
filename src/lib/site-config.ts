@@ -7,6 +7,8 @@ export const siteConfig = {
 		"https://chromewebstore.google.com/detail/story-lens/caimeippciancnajhfokmhadjhmedmnf",
 	extension: "https://github.com/Hussain7Abbas/storylens-extension",
 	client: "https://github.com/Hussain7Abbas/storylens-client",
+	downloads:
+		"https://github.com/Hussain7Abbas/storylens-client/releases/latest",
 	website: "https://github.com/Hussain7Abbas/storylens-website",
 	setup:
 		"https://github.com/Hussain7Abbas/storylens/blob/develop/docs/client.md",
