@@ -42,7 +42,10 @@ export function isStale(website: AccountUser, extension: AccountUser): boolean {
 export function decide(
 	web: WebState,
 	bridge: BridgeState,
-	options: { renewExtensionSession?: boolean } = {},
+	options: {
+		renewExtensionSession?: boolean;
+		extensionSessionInvalid?: boolean;
+	} = {},
 ): Decision {
 	if (web.status === "loading" || bridge.status === "detecting") return "none";
 	if (web.status === "signed-in") {
@@ -50,6 +53,9 @@ export function decide(
 		const held = bridge.session;
 		if (!held) return "hand-off";
 		if (held.user.isGuest) return "hand-off-merging-guest";
+		// An account from an old local database is no longer an alternative to
+		// choose, even if its cached profile has a different ID.
+		if (options.extensionSessionInvalid) return "hand-off";
 		if (held.user.id !== web.user.id) return "ask-which-account";
 		if (options.renewExtensionSession) return "hand-off";
 		return isStale(web.user, held.user) ? "refresh-extension-user" : "none";

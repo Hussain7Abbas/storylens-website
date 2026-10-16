@@ -20,6 +20,7 @@ import {
 	changeEmail,
 	changePassword,
 	createExtensionSession,
+	getExtensionMe,
 	getProviders,
 	getWebMe,
 	type RegistrationValues,
@@ -136,6 +137,9 @@ export function AccountApp({
 	const [bridge, setBridge] = useState<BridgeState>({ status: "detecting" });
 	const [notice, setNotice] = useState<Notice>(null);
 	const [renewExtensionSession, setRenewExtensionSession] = useState(false);
+	const [invalidExtensionToken, setInvalidExtensionToken] = useState<
+		string | null
+	>(null);
 	useEffect(() => {
 		const requested =
 			new URLSearchParams(window.location.search).get("reauth") === "1";
@@ -254,10 +258,42 @@ export function AccountApp({
 
 	const [stayOut, setStayOut] = useState(false);
 	useEffect(() => setStayOut(signedOutHere()), []);
-	const decided = decide(web, bridge, { renewExtensionSession });
+	const held = bridge.status === "ready" ? bridge.session : null;
+	const decided = decide(web, bridge, {
+		renewExtensionSession,
+		extensionSessionInvalid: !!held && held.token === invalidExtensionToken,
+	});
 	const decision: Decision =
 		decided === "adopt" && stayOut ? "show-forms" : decided;
-	const held = bridge.status === "ready" ? bridge.session : null;
+	const heldToken = held?.token;
+	const heldIsGuest = held?.user.isGuest;
+
+	// A cached account can belong to an old local database, even when its email
+	// matches the website. Check registered sessions before requiring a choice;
+	// only a confirmed 401 allows automatic handoff across different account IDs.
+	useEffect(() => {
+		if (
+			!signedInId ||
+			!heldToken ||
+			heldIsGuest ||
+			linking ||
+			leaving ||
+			view === "oauth"
+		)
+			return;
+		let active = true;
+		void getExtensionMe(locale, heldToken)
+			.then((user) => {
+				if (active && !leavingRef.current && !user)
+					setInvalidExtensionToken(heldToken);
+			})
+			.catch(() => {
+				// An unavailable API is not evidence that a session has expired.
+			});
+		return () => {
+			active = false;
+		};
+	}, [signedInId, heldToken, heldIsGuest, linking, leaving, view, locale]);
 
 	// Keeps the extension on the website's account (or the website on the
 	// extension's), at most once per state pair so a failing call cannot loop.

@@ -94,6 +94,19 @@ export async function getWebMe(locale: Locale): Promise<AccountUser | null> {
 	}
 }
 
+/** Checks the extension's bearer session independently of the website cookie. */
+export async function getExtensionMe(
+	locale: Locale,
+	token: string,
+): Promise<AccountUser | null> {
+	try {
+		return await call<AccountUser>("/api/user/auth/me", { locale, token });
+	} catch (error) {
+		if (error instanceof AccountApiError && error.status === 401) return null;
+		throw error;
+	}
+}
+
 export function webLogin(
 	locale: Locale,
 	values: { email: string; password: string },

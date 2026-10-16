@@ -102,6 +102,7 @@ async function mockApi(
 	const bearerUsers: Record<string, User> = {
 		"member-token": reader,
 		"other-token": other,
+		"handoff-token": web ?? reader,
 	};
 	const json = (request: Request) => {
 		try {
@@ -134,13 +135,18 @@ async function mockApi(
 		switch (`${method} ${path}`) {
 			case "GET /auth/providers":
 				return route.fulfill({ json: { google } });
-			case "GET /auth/me":
-				return state.web
-					? route.fulfill({ json: state.web })
+			case "GET /auth/me": {
+				const authorization = request.headers().authorization;
+				const user = authorization
+					? bearerUsers[authorization.replace("Bearer ", "")]
+					: state.web;
+				return user
+					? route.fulfill({ json: user })
 					: route.fulfill({
 							status: 401,
 							json: { message: "Authentication required" },
 						});
+			}
 			case "PUT /auth/me":
 				if (await signedOut()) return;
 				state.web = { ...(state.web as User), ...(body as object) };
@@ -409,6 +415,58 @@ test("a signed-out extension gets the website's account", async ({ page }) => {
 	});
 });
 
+for (const recovery of [false, true])
+	test(`an obsolete local account ID signs in automatically${recovery ? " from sync recovery" : " on a normal profile visit"}`, async ({
+		page,
+	}) => {
+		await installFakeExtension(page, {
+			user: { ...reader, id: "account-before-database-reset" },
+			token: "expired-token",
+		});
+		const api = await mockApi(page, { web: reader });
+		await page.goto(recovery ? "/en/profile/login/?reauth=1" : "/en/profile/");
+		await expect
+			.poll(() => storedSession(page))
+			.toEqual({ user: reader, token: "handoff-token" });
+		expect(calls(api, "POST", "/auth/web/extension-session")).toHaveLength(1);
+		expect(calls(api, "POST", "/auth/web/login")).toHaveLength(0);
+		expect(calls(api, "POST", "/auth/web/adopt")).toHaveLength(0);
+		await expect(
+			page.getByRole("button", { name: /Use .* in the extension/ }),
+		).toHaveCount(0);
+	});
+
+for (const staleProfile of [false, true])
+	test(`a normal profile visit renews an expired extension session with an ${staleProfile ? "outdated" : "unchanged"} profile`, async ({
+		page,
+	}) => {
+		await installFakeExtension(page, {
+			user: staleProfile ? { ...reader, name: "Old name" } : reader,
+			token: "expired-token",
+		});
+		const api = await mockApi(page, { web: reader });
+		await page.goto("/en/profile/");
+		await expect
+			.poll(() => storedSession(page))
+			.toEqual({ user: reader, token: "handoff-token" });
+		await expect(
+			page.getByText("The extension in this browser uses this account."),
+		).toBeVisible();
+		expect(calls(api, "POST", "/auth/web/extension-session")).toHaveLength(1);
+		expect(calls(api, "POST", "/auth/web/login")).toHaveLength(0);
+		expect(calls(api, "POST", "/auth/web/adopt")).toHaveLength(0);
+		const check = calls(api, "GET", "/auth/me").find(
+			(call) => call.authorization === "Bearer expired-token",
+		);
+		expect(check).toBeDefined();
+		expect(check?.csrf).toBeUndefined();
+		await page.reload();
+		await expect(
+			page.getByText("The extension in this browser uses this account."),
+		).toBeVisible();
+		expect(calls(api, "POST", "/auth/web/extension-session")).toHaveLength(1);
+	});
+
 for (const staleProfile of [false, true])
 	test(`sync recovery renews once with an ${staleProfile ? "outdated" : "unchanged"} extension profile`, async ({
 		page,
@@ -511,11 +569,90 @@ test("an extension on the same account gets the fresh profile, keeping its token
 	await expect(
 		page.getByText("The extension in this browser uses this account."),
 	).toBeVisible();
+	await expect
+		.poll(
+			() =>
+				calls(api, "GET", "/auth/me").filter(
+					(call) => call.authorization === "Bearer member-token",
+				).length,
+		)
+		.toBeGreaterThan(0);
 	expect(calls(api, "POST", "/auth/web/extension-session")).toHaveLength(0);
 	expect(await storedSession(page)).toEqual({
 		user: reader,
 		token: "member-token",
 	});
+});
+
+test("a failed extension session check preserves the session and website account", async ({
+	page,
+}) => {
+	const session = { user: reader, token: "member-token" };
+	await installFakeExtension(page, session);
+	const api = await mockApi(page, { web: reader });
+	await page.route("**/api/user/auth/me", async (route) => {
+		if (route.request().headers().authorization)
+			await route.fulfill({ status: 503, json: { message: "Unavailable" } });
+		else await route.fallback();
+	});
+	const checked = page.waitForResponse(
+		(response) =>
+			response.request().headers().authorization === "Bearer member-token",
+	);
+	await page.goto("/en/profile/");
+	await checked;
+	await expect(page.locator(".account-details")).toContainText(reader.email);
+	expect(await storedSession(page)).toEqual(session);
+	expect(calls(api, "POST", "/auth/web/extension-session")).toHaveLength(0);
+});
+
+test("an expired session check cannot replace an account chosen while it was pending", async ({
+	page,
+}) => {
+	await installFakeExtension(page, { user: reader, token: "expired-token" });
+	const api = await mockApi(page, { web: reader });
+	let release = () => {};
+	const pending = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+	await page.route("**/api/user/auth/me", async (route) => {
+		if (route.request().headers().authorization === "Bearer expired-token") {
+			await pending;
+			await route.fulfill({ status: 401, json: { message: "Expired" } });
+		} else await route.fallback();
+	});
+	const checking = page.waitForRequest(
+		(request) => request.headers().authorization === "Bearer expired-token",
+	);
+	await page.goto("/en/profile/");
+	await checking;
+	const session = { user: other, token: "other-token" };
+	await page.evaluate((nextSession) => {
+		sessionStorage.setItem(
+			"fake-extension-session",
+			JSON.stringify(nextSession),
+		);
+		window.postMessage(
+			{
+				channel: "storylens-account",
+				from: "extension",
+				type: "session",
+				session: nextSession,
+			},
+			location.origin,
+		);
+	}, session);
+	const card = page.getByRole("region", { name: "Story Lens extension" });
+	await expect(card).toContainText(other.email);
+	const checked = page.waitForResponse(
+		(response) =>
+			response.request().headers().authorization === "Bearer expired-token",
+	);
+	release();
+	await checked;
+	await expect(card).toContainText(other.email);
+	expect(await storedSession(page)).toEqual(session);
+	expect(calls(api, "POST", "/auth/web/extension-session")).toHaveLength(0);
 });
 
 test("an extension on another account asks which one to keep", async ({

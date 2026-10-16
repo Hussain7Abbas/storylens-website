@@ -66,6 +66,16 @@ test("sync recovery renews the same account and preserves other account choices"
 	expect(decide(signedOut, held(a), options)).toBe("adopt");
 });
 
+test("a confirmed invalid extension session is replaced without an account choice", () => {
+	const options = { extensionSessionInvalid: true };
+	expect(
+		decide(signedIn, held(user("old-id", { email: a.email })), options),
+	).toBe("hand-off");
+	expect(decide(signedIn, held(user("b")), options)).toBe("hand-off");
+	expect(decide(signedIn, held(user("b")))).toBe("ask-which-account");
+	expect(decide(signedOut, held(user("b")), options)).toBe("adopt");
+});
+
 test("safeNext keeps only this locale's profile and pricing pages", () => {
 	expect(safeNext("/en/profile/balance/", "en")).toBe("/en/profile/balance/");
 	expect(safeNext("/en/pricing/", "en")).toBe("/en/pricing/");

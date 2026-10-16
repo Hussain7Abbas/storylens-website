@@ -180,7 +180,7 @@
 		"registerTitle": "Create an account",
 		"passwordTitle": "Change password",
 		"intro": "Manage your Story Lens account. The extension in this browser uses the same account.",
-		"bridgeNote": "This website keeps you signed in with a secure cookie it cannot read. The Story Lens extension in this browser is signed in to the same account.",
+		"bridgeNote": "This website keeps you signed in with a secure cookie it cannot read. Your account is shared with the Story Lens extension when it connects in this browser.",
 		"login": "Sign in",
 		"register": "Create account",
 		"changePassword": "Change password",
