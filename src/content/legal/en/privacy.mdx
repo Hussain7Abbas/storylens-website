@@ -1,13 +1,13 @@
 ---
 title: "Privacy Policy"
-lastUpdated: "2026-10-02"
-version: "1.3.0"
-changelog: "Cloud AI, lenses, billing contacts and website sessions / الذكاء الاصطناعي السحابي والعدسات والتواصل للفوترة وجلسات الموقع"
+lastUpdated: "2026-10-16"
+version: "1.4.0"
+changelog: "Gemini CLI desktop provider support / دعم Gemini CLI في تطبيق الحاسوب"
 ---
 
 ## At a glance
 
-Story Lens adds character reference tools and text replacements to your browser. Accounts and shared reference data use the Story Lens API. In Settings → AI, you choose Story Lens Cloud (uses lenses) or the free desktop companion (uses your own Claude/Codex account). Requested Cloud actions send relevant content through the Story Lens API to OpenRouter and the configured model providers. Desktop actions use your paired computer. This website loads Google Analytics only if you allow it; extension analytics can be disabled in General settings. Hosting and security services process network requests.
+Story Lens adds character reference tools and text replacements to your browser. Accounts and shared reference data use the Story Lens API. In Settings → AI, you choose Story Lens Cloud (uses lenses) or the free desktop companion (uses your own Claude/Codex/Gemini account). Requested Cloud actions send relevant content through the Story Lens API to OpenRouter and the configured model providers. Desktop actions use your paired computer. This website loads Google Analytics only if you allow it; extension analytics can be disabled in General settings. Hosting and security services process network requests.
 
 ## Operator and contact
 
@@ -25,7 +25,7 @@ Novels, chapter metadata, keywords, descriptions, aliases, versions, categories,
 
 Story Lens requests providers that do not retain or train on data, using OpenRouter's `data_collection: "deny"` routing option. If the model has no matching route, it falls back to other providers and records that policy choice. Those providers may retain content under their own terms. The reader's opaque account ID accompanies the provider request. Story Lens does not store or log these prompts, answers or generated images; it retains account-linked usage records: feature, novel ID when applicable, model, attempts, token counts, cost, timing, outcome, provider generation ID and data-policy choice. Completed cloud AI action and call records are removed after 400 days by a daily cleanup; running actions are excluded until they finish. The lens ledger is retained separately. An answer or image becomes stored reference content only if you save it. Generated novel context is saved to the novel when research succeeds; generated images are uploaded to ImgBB only when saved in a form.
 
-**Desktop companion:** requested AI actions use your installed Claude Code or Codex CLI and your provider account. Summaries use cleaned HTML; other actions use the relevant text or page outline described above. The Story Lens backend does not receive these desktop AI requests, although saving resulting reference data sends it to the API. The companion does not log prompts or output. The wiki crawler stays desktop-only. A failed request does not silently switch sources. Visible personal information can remain after cleaning: only send content you are allowed to share.
+**Desktop companion:** requested AI actions use your installed Claude Code, Codex or Gemini CLI and your provider account. Summaries use cleaned HTML; other actions use the relevant text or page outline described above. The Story Lens backend does not receive these desktop AI requests, although saving resulting reference data sends it to the API. The companion does not log prompts or output. Gemini CLI may maintain its own local session history; its provider settings and privacy terms apply. The wiki crawler stays desktop-only. A failed request does not silently switch sources. Visible personal information can remain after cleaning: only send content you are allowed to share.
 
 ## Lenses, requests and email
 
@@ -64,7 +64,7 @@ You can change your choice at any time with "Analytics settings" in the site foo
 
 This site is served by Nginx on the operator’s server behind Cloudflare. Requests can reveal IP addresses, request time, paths, response status, browser information, and referrers to hosting and network services. Website Nginx access logs rotate daily with 14 rotations retained. Backend logs record method, status, path, and errors; error messages and stacks can contain diagnostic data. Backend application log retention has no verified fixed limit, so no automatic deletion deadline is promised.
 
-Processors and independent services include the infrastructure host, Cloudflare, ImgBB, Resend (account and billing emails), OpenRouter, Exa and the configured AI model providers (for Cloud actions or legacy selector detection), Google (for website analytics you allow and extension analytics when configured and enabled), and your chosen Anthropic or OpenAI service for desktop AI actions. These services may process data internationally under their own policies. No single-country processing or specific transfer mechanism is promised here. We may disclose data when legally required or reasonably necessary to protect security and rights.
+Processors and independent services include the infrastructure host, Cloudflare, ImgBB, Resend (account and billing emails), OpenRouter, Exa and the configured AI model providers (for Cloud actions or legacy selector detection), Google (for website analytics you allow and extension analytics when configured and enabled), and your chosen Anthropic, OpenAI or Google service for desktop AI actions. These services may process data internationally under their own policies. No single-country processing or specific transfer mechanism is promised here. We may disclose data when legally required or reasonably necessary to protect security and rights.
 
 See [Cloudflare’s privacy policy](https://www.cloudflare.com/policies/privacy/), [ImgBB’s privacy policy](https://imgbb.com/privacy), [OpenRouter’s privacy policy](https://openrouter.ai/privacy), [Resend’s privacy policy](https://resend.com/legal/privacy-policy), [Google’s privacy policy](https://policies.google.com/privacy), [Anthropic’s privacy policy](https://www.anthropic.com/legal/privacy), and [OpenAI’s privacy policy](https://openai.com/policies/privacy-policy/). External pages have their own terms.
 

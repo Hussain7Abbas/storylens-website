@@ -32,7 +32,7 @@ There are two independent paths, and the reader chooses:
    Lenses are taken when an action starts and refunded automatically if it
    fails, times out, returns nothing, or is cancelled. Lenses never expire.
 2. **Desktop companion** — a free app that runs on the reader's own computer
-   and calls their installed Claude Code or Codex CLI. The chosen provider
+   and calls their installed Claude Code, Codex or Gemini CLI. The chosen provider
    receives the page content the reader asks to summarize; the Story Lens API
    is not part of that path. macOS and Windows build instructions exist;
    published installers are not available yet, and local builds may be

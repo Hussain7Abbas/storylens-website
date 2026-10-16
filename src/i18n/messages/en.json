@@ -73,7 +73,7 @@
 		],
 		[
 			"Optional AI summaries",
-			"Pair the desktop companion to summarize a page through your own Claude Code or Codex login."
+			"Pair the desktop companion to summarize a page through your own Claude Code, Codex or Gemini login."
 		]
 	],
 	"demoLabel": "TRY A CHAPTER",
@@ -98,7 +98,7 @@
 	],
 	"companionLabel": "OPTIONAL DESKTOP COMPANION",
 	"companionTitle": "A recap, through your own AI account.",
-	"companionBody": "The companion runs on your computer and calls your installed Claude Code or Codex CLI. The selected provider receives the page content you ask to summarize. Story Lens’s API is not part of this summary path.",
+	"companionBody": "The companion runs on your computer and calls your installed Claude Code, Codex or Gemini CLI. The selected provider receives the page content you ask to summarize. Story Lens’s API is not part of this summary path.",
 	"setup": "Set up the companion",
 	"source": "View source",
 	"downloadNote": "macOS and Windows build instructions are available. Published installers are not available yet; local builds may be unsigned.",
@@ -135,7 +135,7 @@
 		],
 		[
 			"Which AI does it use?",
-			"With the companion connected, chapter-selector detection and summaries use your chosen Claude Code or Codex CLI provider. Without a connected AI provider, selector detection uses OpenRouter through the backend. Provider charges and limits depend on your account."
+			"With the companion connected, chapter-selector detection and summaries use your chosen Claude Code, Codex or Gemini CLI provider. Without a connected AI provider, selector detection uses OpenRouter through the backend. Provider charges and limits depend on your account."
 		],
 		[
 			"Is Arabic supported?",
@@ -433,7 +433,7 @@
 			],
 			[
 				"Is there a free option?",
-				"Yes. The Story Lens desktop companion runs the same AI features with your own Claude or Codex subscription, without lenses."
+				"Yes. The Story Lens desktop companion runs the same AI features with your own Claude, Codex or Gemini account, without lenses."
 			],
 			[
 				"What is sent to AI providers?",

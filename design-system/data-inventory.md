@@ -1,4 +1,4 @@
-# Data handling inventory — cloud AI and lenses updated 2026-10-02
+# Data handling inventory — Gemini CLI provider updated 2026-10-16
 
 Original source snapshots: backend `6a800550c57c3e022aebf40633adeb4337edc9da`, extension `78b3c8e87603d9be46922f7612ec2e76eecb65d4`, client `a1ee92e07ab21ddd883b074e381d8406a1e5a1b8`. The selector row below also reflects the current local `develop` extension.
 
@@ -29,3 +29,5 @@ No ad integration, sale, or Story Lens model-training path was found in the insp
 Owner approved Hussain Abbas, age 13/16, and mandatory applicable law without exclusive venue on 2026-09-27. Owner approved hussain@iscoded.com for privacy and deletion requests. Professional legal review is recommended before treating the documents as store-ready.
 
 Store disclosure drafts classify lens/account billing metadata as financial/payment information while explicitly excluding card or bank credentials. WhatsApp/Telegram contacts and request notes belong to the website billing form. Both language drafts require owner review before store submission.
+
+Gemini CLI is an additional opt-in desktop text provider (including wiki crawling), using the reader’s own CLI login. It receives the same requested page/prompt data as Claude/Codex and can use web search only for explicit research. Story Lens disables its local tools, hooks, MCP servers, extensions and skills per request; Gemini may retain local provider session history under its own settings. Image generation remains Codex-only. Evidence: client `src/providers/gemini.ts`, `catalog.ts`, `execute.ts`; privacy draft 1.4.0 in both languages.
