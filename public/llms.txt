@@ -66,3 +66,5 @@ There are two independent paths, and the reader chooses:
   to the pricing page instead of repeating a figure.
 - Account pages under `/en/profile/` and `/ar/profile/` are private and are
   excluded in `robots.txt`.
+
+Chapter covers can be generated from the chapter, novel context and keyword references. Covers are shared and displayed before chapter text. Automatic generation is optional and off by default; Story Lens Cloud uses lenses, and desktop image generation uses Codex independently of the text provider.
