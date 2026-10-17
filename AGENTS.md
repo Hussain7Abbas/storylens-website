@@ -34,3 +34,5 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+The lens request page takes its fixed 500–2,147,483,647 bounds from public API pricing; presets, the minimum shortfall suggestion, input constraints and validation follow that response. `priceCents` uses BigInt for multiplication/rounding before returning safe integer cents; retain boundary vectors in `tests/billing-money.spec.ts`.

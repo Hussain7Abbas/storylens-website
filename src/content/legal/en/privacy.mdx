@@ -1,8 +1,8 @@
 ---
 title: "Privacy Policy"
-lastUpdated: "2026-10-16"
-version: "1.5.0"
-changelog: "Shared chapter covers and optional automatic generation / أغلفة الفصول المشتركة والتوليد التلقائي الاختياري"
+lastUpdated: "2026-10-18"
+version: "1.6.0"
+changelog: "Editable saved image prompts / طلبات صور محفوظة قابلة للتعديل"
 ---
 
 ## At a glance
@@ -24,6 +24,8 @@ Novels, chapter metadata, keywords, descriptions, aliases, versions, categories,
 **Story Lens Cloud:** when you request an AI action, the extension sends cleaned page text for summaries; selected and nearby chapter text, reference names and descriptions for suggestions; chapter text and known names for extraction; names, descriptions and chapter passages for character images; novel titles, slugs and descriptions for research; or a page URL and a bounded outline of page elements for selector detection. Your own AI prompt instructions and relevant novel context can be included. The Story Lens API forwards these requests to OpenRouter and its configured model providers, initially Google Gemini for text and ByteDance Seedream for images. Novel research also uses OpenRouter web search (Exa). The operator can change models. Older extensions may still send the URL and HTML to the legacy selector-detection route.
 
 Story Lens requests providers that do not retain or train on data, using OpenRouter's `data_collection: "deny"` routing option. If the model has no matching route, it falls back to other providers and records that policy choice. Those providers may retain content under their own terms. The reader's opaque account ID accompanies the provider request. Story Lens does not store or log raw prompts, answers or generated images in AI usage records; it retains account-linked usage metadata: feature, novel ID when applicable, model, attempts, token counts, cost, timing, outcome, provider generation ID and data-policy choice. Completed cloud AI action and call records are removed after 400 days by a daily cleanup; running actions are excluded until they finish. The lens ledger is retained separately. An answer or image becomes stored reference content only if you save it. Generated novel context is saved to the novel when research succeeds; character images are uploaded to ImgBB when saved in a form. Requested chapter covers are automatically uploaded and saved as shared chapter artwork when generation succeeds.
+
+**Saved image prompts:** when you save a keyword, alias or chapter version, its editable Image Prompt is stored locally and synchronized as shared reference data. It may contain appearance details, novel context and chapter excerpts used to prepare the image. You can edit or clear it; future image generation sends that saved text to your selected image provider. Image prompts are excluded from analytics and AI usage logs.
 
 **Desktop companion:** requested AI actions use your installed Claude Code, Codex or Gemini CLI and your provider account. Summaries use cleaned HTML; other actions use the relevant text or page outline described above. The Story Lens backend does not receive these desktop AI requests, although saving resulting reference data sends it to the API. The companion does not log prompts or output. Gemini CLI may maintain its own local session history; its provider settings and privacy terms apply. The wiki crawler stays desktop-only. A failed request does not silently switch sources. Visible personal information can remain after cleaning: only send content you are allowed to share.
 

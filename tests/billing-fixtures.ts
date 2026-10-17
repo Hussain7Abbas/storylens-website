@@ -39,7 +39,7 @@ export function pricing(overrides: Record<string, unknown> = {}) {
 		lensPriceUsd: "0.010000",
 		lensPriceMicros: 10000,
 		trialLenses: 10,
-		request: { min: 100, max: 50000, pendingMax: 3 },
+		request: { min: 500, max: 2147483647, pendingMax: 3 },
 		cloudAi: { enabled: true },
 		features,
 		...overrides,

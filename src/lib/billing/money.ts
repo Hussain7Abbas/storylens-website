@@ -21,7 +21,9 @@ export function parseUsdToMicros(
 
 /** `lenses × price`, rounded half-up to cents. */
 export function priceCents(lenses: number, priceMicros: number): number {
-	return Math.floor((lenses * priceMicros + 5_000) / 10_000);
+	return Number(
+		(BigInt(lenses) * BigInt(priceMicros) + BigInt(5_000)) / BigInt(10_000),
+	);
 }
 
 // Latin digits in Arabic too, like the rest of the site's numbers.

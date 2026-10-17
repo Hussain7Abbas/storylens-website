@@ -180,9 +180,9 @@ test("the total is computed in the browser with half-up cents", async ({
 		price: pricing({ lensPriceUsd: "0.015000", lensPriceMicros: 15000 }),
 	});
 	await page.goto("/en/profile/balance/");
-	await amount(page).fill("333");
+	await amount(page).fill("533");
 	await expect(page.locator(".request-total")).toContainText(
-		"333 lenses = $5.00",
+		"533 lenses = $8.00",
 	);
 	await expect(page.locator(".request-total")).toContainText(
 		"($0.015 per lens)",
@@ -196,8 +196,8 @@ test("Arabic formats the total with Latin digits and Arabic plurals", async ({
 }) => {
 	await mockBilling(page);
 	await page.goto("/ar/profile/balance/");
-	await page.getByLabel("العدسات", { exact: true }).fill("103");
-	await expect(page.locator(".request-total")).toContainText("103 عدسات");
+	await page.getByLabel("العدسات", { exact: true }).fill("503");
+	await expect(page.locator(".request-total")).toContainText("503 عدسات");
 	await page.getByLabel("العدسات", { exact: true }).fill("500");
 	await expect(page.locator(".request-total")).toContainText("500 عدسة");
 	await expect(page.locator(".request-total")).toContainText("5.00");
@@ -210,12 +210,12 @@ test("an amount outside the limits is refused before sending", async ({
 	await page.goto("/en/profile/balance/");
 	await amount(page).fill("50");
 	await expect(page.locator(".request-total")).toHaveText(
-		"Choose between 100 and 50,000 lenses.",
+		"Choose between 500 and 2,147,483,647 lenses.",
 	);
 	await contact(page).fill("+9647701234567");
 	await submit(page).click();
 	await expect(page.locator(".request-form .account-error")).toHaveText(
-		"Choose between 100 and 50,000 lenses.",
+		"Choose between 500 and 2,147,483,647 lenses.",
 	);
 	expect(api.created).toEqual([]);
 });
@@ -373,7 +373,7 @@ test("arriving from the extension explains what is missing and covers it", async
 		"Character image needs 3 lenses. You have 1 lens.",
 	);
 	await expect(amount(page)).toBeFocused();
-	await expect(amount(page)).toHaveValue("100");
+	await expect(amount(page)).toHaveValue("500");
 });
 
 test("gifts are celebrated together, purchases with a notice, then marked seen", async ({
@@ -505,3 +505,25 @@ for (const locale of ["en", "ar"] as const)
 				.analyze();
 			expect(result.violations).toEqual([]);
 		});
+
+for (const locale of ["en", "ar"] as const) {
+	test(`${locale} accepts the PostgreSQL request limit and enforces the 500-lens minimum`, async ({
+		page,
+	}) => {
+		const api = await mockBilling(page);
+		await page.goto(`/${locale}/profile/balance/`);
+		const input = page.locator('input[name="lenses"]');
+		await expect(input).toHaveAttribute("min", "500");
+		await expect(input).toHaveAttribute("max", "2147483647");
+		await input.fill("499");
+		await expect(input).toHaveAttribute("aria-invalid", "true");
+		await input.fill("2147483648");
+		await expect(input).toHaveAttribute("aria-invalid", "true");
+		await input.fill("2147483647");
+		await expect(input).toHaveAttribute("aria-invalid", "false");
+		await page.locator('input[name="contact"]').fill("+9647701234567");
+		await page.locator('.request-form button[type="submit"]').click();
+		await expect.poll(() => api.created.length).toBe(1);
+		expect(api.created[0]?.lenses).toBe(2147483647);
+	});
+}
