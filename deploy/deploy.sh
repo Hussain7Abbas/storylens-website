@@ -12,7 +12,18 @@ set +a
 exec 9>/var/lock/storylens-website-deploy.lock
 flock -n 9 || { echo "Another website deploy is running."; exit 1; }
 bun install --frozen-lockfile
+# Next.js rewrites this tracked generated file for production builds. Preserve
+# the checkout's copy even when the build fails so the next deploy can proceed.
+next_env_snapshot="$(mktemp)"
+cp -p next-env.d.ts "$next_env_snapshot"
+restore_next_env() {
+ cp -p "$next_env_snapshot" next-env.d.ts
+ rm -f "$next_env_snapshot"
+}
+trap restore_next_env EXIT
 bun run build
+restore_next_env
+trap - EXIT
 release="/var/www/storylens/releases/$(date -u +%Y%m%dT%H%M%SZ)-$(git rev-parse --short HEAD)"
 mkdir -p "$release" /var/www/certbot
 cp -a out/. "$release/"
